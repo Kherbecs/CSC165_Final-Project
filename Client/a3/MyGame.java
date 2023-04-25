@@ -54,6 +54,12 @@ public class MyGame extends VariableFrameRateGame
 	private ObjShape simpleCharS;
 	private TextureImage simpleCharX;
 
+	// CREATURE VARIABLES
+	private GameObject creature;
+	private TextureImage creaturetx;
+	private ObjShape creatureS;
+
+
 	// TERRAIN
 	private GameObject terrain;
 	private ObjShape terrainS;
@@ -108,6 +114,8 @@ public class MyGame extends VariableFrameRateGame
 		simpleCharS = new ImportedModel("simplecharacter.obj");
 		terrainS = new TerrainPlane(1000);
 
+		creatureS = new ImportedModel("creature.obj");
+
 		linxS = (ObjShape)jsEngine.get("linxS");
 		linyS = (ObjShape)jsEngine.get("linyS");
 		linzS = (ObjShape)jsEngine.get("linzS");
@@ -120,6 +128,8 @@ public class MyGame extends VariableFrameRateGame
 		simpleCharX = new TextureImage("simplecharactertesttex.png");
 		hills = new TextureImage("hmaptest.jpg");
 		bricks = new TextureImage("brick1.jpg");
+
+		//creaturetx =  new TextureImage("creatureTx.jpg")
 	}
 
 	@Override
@@ -141,6 +151,14 @@ public class MyGame extends VariableFrameRateGame
 		//initialScale = (new Matrix4f()).scaling(0.25f, 0.25f, 0.25f);
 		avatar.setLocalScale((Matrix4f)jsEngine.get("initAvatarScale"));
 		avatar.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationY((float)java.lang.Math.toRadians(90.0f)));
+
+		//build creature model
+		creature = new GameObject(GameObject.root(), creatureS);
+		initialTranslation = (new Matrix4f()).translation(0f, -3f, 0f);
+		creature.setLocalTranslation(initialTranslation);
+		initialScale = (new Matrix4f()).scaling(0.50f, 0.50f, 0.50f);
+		creature.setLocalScale(initialScale);
+		creature.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationY((float)java.lang.Math.toRadians(90.0f)));
 
 		// build torus along X axis
 		tor = new GameObject(GameObject.root(), torS);
@@ -262,6 +280,7 @@ public class MyGame extends VariableFrameRateGame
 	}
 
 	public GameObject getAvatar() { return avatar; }
+	public GameObject getCreature() { return creature; }
 
 	@Override
 	public void update() {
