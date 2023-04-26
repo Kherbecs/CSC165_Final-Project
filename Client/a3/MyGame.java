@@ -147,14 +147,14 @@ public class MyGame extends VariableFrameRateGame
 		//initialTranslation = (Matrix4f)jsEngine.get("initPlayerTranslation");
 		avatar.setLocalTranslation((Matrix4f)jsEngine.get("initAvatarTranslation"));
 		//initialRotation = (new Matrix4f()).rotationY((float)java.lang.Math.toRadians(135.0f));
-		avatar.setLocalRotation((Matrix4f)jsEngine.get("initPlayerRotation")).floatValue();
+		avatar.setLocalRotation((Matrix4f)jsEngine.get("initPlayerRotation"));
 		//initialScale = (new Matrix4f()).scaling(0.25f, 0.25f, 0.25f);
 		avatar.setLocalScale((Matrix4f)jsEngine.get("initAvatarScale"));
 		avatar.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationY((float)java.lang.Math.toRadians(90.0f)));
 
 		//build creature model
 		creature = new GameObject(GameObject.root(), creatureS);
-		initialTranslation = (new Matrix4f()).translation(0f, -3f, 0f);
+		initialTranslation = (new Matrix4f()).translation(0f, 3f, 0f);
 		creature.setLocalTranslation(initialTranslation);
 		initialScale = (new Matrix4f()).scaling(0.50f, 0.50f, 0.50f);
 		creature.setLocalScale(initialScale);
