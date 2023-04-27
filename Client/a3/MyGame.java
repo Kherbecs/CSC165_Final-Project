@@ -19,6 +19,14 @@ import java.net.UnknownHostException;
 
 import org.joml.*;
 
+// PHYSICS ENGINE //
+import tage.physics.PhysicsEngine;
+import tage.physics.PhysicsObject;
+import tage.physics.PhysicsEngineFactory;
+import tage.physics.JBullet.*;
+import com.bulletphysics.dynamics.RigidBody;
+import com.bulletphysics.collision.dispatch.CollisionObject;
+
 import net.java.games.input.*;
 import net.java.games.input.Component.Identifier.*;
 import net.java.games.input.Event;
@@ -59,6 +67,11 @@ public class MyGame extends VariableFrameRateGame
 	private TextureImage creaturetx;
 	private ObjShape creatureS;
 
+	// PHYSICS 
+	private PhysicsEngine physicsEngine;
+	private PhysicsObject creatureP, terrainP;
+	private boolean running = false;
+	private float vals[] = new float[16];
 
 	// TERRAIN
 	private GameObject terrain;
@@ -209,7 +222,8 @@ public class MyGame extends VariableFrameRateGame
 	}
 	@Override
 	public void initializeGame()
-	{	prevTime = System.currentTimeMillis();
+	{	
+		prevTime = System.currentTimeMillis();
 		startTime = System.currentTimeMillis();
 		(engine.getRenderSystem()).setWindowDimensions(1900,1000);
 
@@ -276,6 +290,30 @@ public class MyGame extends VariableFrameRateGame
 		im.associateActionWithAllGamepads(net.java.games.input.Component.Identifier.Button._4, zoomCameraIn, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		im.associateActionWithAllGamepads(net.java.games.input.Component.Identifier.Button._5, zoomCameraOut, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 
+		// --- initialize physics system ---
+		String engine = "tage.physics.JBullet.JBulletPhysicsEngine";
+		float[] gravity = {0f, -5f, 0f};
+		physicsEngine = PhysicsEngineFactory.createPhysicsEngine(engine);
+		physicsEngine.initSystem();
+		physicsEngine.setGravity(gravity);
+
+		// --- create physics world ---
+		float mass = 1.0f;
+		float up[ ] = {0,1,0};
+		double[ ] tempTransform;
+		Matrix4f translation = new Matrix4f(creature.getLocalTranslation());
+		tempTransform = toDoubleArray(translation.get(vals));
+		creatureP = physicsEngine.addSphereObject(physicsEngine.nextUID(), mass, tempTransform, 0.75f);
+		creatureP.setBounciness(1.0f);
+		creature.setPhysicsObject(creatureP);
+
+		terrainP = physicsEngine.addStaticPlaneObject(physicsEngine.nextUID(), tempTransform, up, 0.0f);
+		terrainP.setBounciness(1.0f);
+		terrain.setPhysicsObject(terrainP);
+
+
+
+
 		setupNetworking();
 	}
 
@@ -305,51 +343,28 @@ public class MyGame extends VariableFrameRateGame
 		float height = terrain.getHeight(loc.x(), loc.z());
 		avatar.setLocalLocation(new Vector3f(loc.x(), height+1f, loc.z()));
 		processNetworking((float)elapsedTime);
+
+		// update physics
+		if (running)
+		{
+			Matrix4f mat = new Matrix4f();
+			Matrix4f mat2 = new Matrix4f().identity();
+			checkForCollisions();
+			physicsEngine.update((float)elapsedTime);
+			for (GameObject go:engine.getSceneGraph().getGameObjects())
+			{ 
+			if (go.getPhysicsObject() != null)
+			{ 
+				mat.set(toFloatArray(go.getPhysicsObject().getTransform()));
+				mat2.set(3,0,mat.m30());
+				mat2.set(3,1,mat.m31());
+				mat2.set(3,2,mat.m32());
+				go.setLocalTranslation(mat2);
+			}
+		} 
 	}
+}
 
-	/*private void positionCameraBehindAvatar()
-	{	Vector4f u = new Vector4f(-1f,0f,0f,1f);
-		Vector4f v = new Vector4f(0f,1f,0f,1f);
-		Vector4f n = new Vector4f(0f,0f,1f,1f);
-		u.mul(avatar.getWorldRotation());
-		v.mul(avatar.getWorldRotation());
-		n.mul(avatar.getWorldRotation());
-		Matrix4f w = avatar.getWorldTranslation();
-		Vector3f position = new Vector3f(w.m30(), w.m31(), w.m32());
-		position.add(-n.x()*4f, -n.y()*4f, -n.z()*4f);
-		position.add(v.x()*1f, v.y()*1f, v.z()*1f);
-		Camera c = (engine.getRenderSystem()).getViewport("MAIN").getCamera();
-		c.setLocation(position);
-		c.setU(new Vector3f(u.x(),u.y(),u.z()));
-		c.setV(new Vector3f(v.x(),v.y(),v.z()));
-		c.setN(new Vector3f(n.x(),n.y(),n.z()));
-	}*/
-
-	/*@Override
-	public void keyPressed(KeyEvent e)
-	{	switch (e.getKeyCode())
-		{	case KeyEvent.VK_W:
-			{	Vector3f oldPosition = avatar.getWorldLocation();
-				Vector4f fwdDirection = new Vector4f(0f,0f,1f,1f);
-				fwdDirection.mul(avatar.getWorldRotation());
-				fwdDirection.mul(0.05f);
-				Vector3f newPosition = oldPosition.add(fwdDirection.x(), fwdDirection.y(), fwdDirection.z());
-				avatar.setLocalLocation(newPosition);
-				protClient.sendMoveMessage(avatar.getWorldLocation());
-				break;
-			}
-			case KeyEvent.VK_D:
-			{	Matrix4f oldRotation = new Matrix4f(avatar.getWorldRotation());
-				Vector4f oldUp = new Vector4f(0f,1f,0f,1f).mul(oldRotation);
-				Matrix4f rotAroundAvatarUp = new Matrix4f().rotation(-.01f, new Vector3f(oldUp.x(), oldUp.y(), oldUp.z()));
-				Matrix4f newRotation = oldRotation;
-				newRotation.mul(rotAroundAvatarUp);
-				avatar.setLocalRotation(newRotation);
-				break;
-			}
-		}
-		super.keyPressed(e);
-	}*/
 	public GameObject getDolphin() {
 		return avatar;
 	}
@@ -424,6 +439,66 @@ public class MyGame extends VariableFrameRateGame
 			System.out.println("Null pointer exception reading " + scriptFile + e4);
 		}
 	}
+
+	private void checkForCollisions()
+	{
+		com.bulletphysics.dynamics.DynamicsWorld dynamicsWorld;
+		com.bulletphysics.collision.broadphase.Dispatcher dispatcher;
+		com.bulletphysics.collision.narrowphase.PersistentManifold manifold;
+		com.bulletphysics.dynamics.RigidBody object1, object2;
+		com.bulletphysics.collision.narrowphase.ManifoldPoint contactPoint;
+		dynamicsWorld = ((JBulletPhysicsEngine)physicsEngine).getDynamicsWorld();
+		dispatcher = dynamicsWorld.getDispatcher();
+		int manifoldCount = dispatcher.getNumManifolds();
+		for (int i=0; i<manifoldCount; i++)
+		{ 
+			manifold = dispatcher.getManifoldByIndexInternal(i);
+			object1 = (com.bulletphysics.dynamics.RigidBody)manifold.getBody0();
+			object2 = (com.bulletphysics.dynamics.RigidBody)manifold.getBody1();
+			JBulletPhysicsObject obj1 = JBulletPhysicsObject.getJBulletPhysicsObject(object1);
+			JBulletPhysicsObject obj2 = JBulletPhysicsObject.getJBulletPhysicsObject(object2);
+			for (int j = 0; j < manifold.getNumContacts(); j++)
+			{ 
+				contactPoint = manifold.getContactPoint(j);
+				if (contactPoint.getDistance() < 0.0f)
+				{ 
+					System.out.println("---- hit between " + obj1 + " and " + obj2);
+					break;
+				}
+			}
+		} 
+	}
+
+
+	private float[] toFloatArray(double[] arr)
+	{ 
+		if (arr == null)
+		{
+			return null;
+		}
+		int n = arr.length;
+		float[] ret = new float[n];
+		for (int i = 0; i < n; i++)
+		{ 
+			ret[i] = (float)arr[i];
+		}
+		return ret;
+	}
+	private double[] toDoubleArray(float[] arr)
+	{
+		if (arr == null)
+		{
+			return null;
+		}
+		int n = arr.length;
+		double[] ret = new double[n];
+		for (int i = 0; i < n; i++)
+		{ 
+			ret[i] = (double)arr[i];
+		}
+		return ret;
+	}
+
 
 	// ---------- NETWORKING SECTION ----------------
 
