@@ -69,9 +69,11 @@ public class MyGame extends VariableFrameRateGame
 
 	// PHYSICS 
 	private PhysicsEngine physicsEngine;
-	private PhysicsObject creatureP, terrainP;
-	private boolean running = false;
-	private float vals[] = new float[16];
+	private PhysicsObject avatarP, creatureP, terrainP;
+	private boolean running = true;
+	private float creatureVals[] = new float[16];
+	private float avatarVals[] = new float[16];
+	private float terrainVals[] = new float[16];
 
 	// TERRAIN
 	private GameObject terrain;
@@ -140,7 +142,7 @@ public class MyGame extends VariableFrameRateGame
 		ghostT = new TextureImage("redDolphin.jpg");
 		simpleCharX = new TextureImage("simplecharactertesttex.png");
 		hills = new TextureImage("hmaptest.jpg");
-		bricks = new TextureImage("brick1.jpg");
+		bricks = new TextureImage("grass.png");
 
 		//creaturetx =  new TextureImage("creatureTx.jpg")
 	}
@@ -167,7 +169,7 @@ public class MyGame extends VariableFrameRateGame
 
 		//build creature model
 		creature = new GameObject(GameObject.root(), creatureS);
-		initialTranslation = (new Matrix4f()).translation(0f, 3f, 0f);
+		initialTranslation = (new Matrix4f()).translation(-10f, 3f, 0f);
 		creature.setLocalTranslation(initialTranslation);
 		initialScale = (new Matrix4f()).scaling(0.50f, 0.50f, 0.50f);
 		creature.setLocalScale(initialScale);
@@ -190,9 +192,9 @@ public class MyGame extends VariableFrameRateGame
 		(z.getRenderStates()).setColor(new Vector3f(0f,0f,1f));
 
 		terrain = new GameObject(GameObject.root(), terrainS, bricks);
-		initialTranslation = (new Matrix4f()).translation(0f, -1f, 0f);
+		initialTranslation = (new Matrix4f()).translation(0f, 0f, 0f);
 		terrain.setLocalTranslation(initialTranslation);
-		initialScale = (new Matrix4f()).scaling(50.0f, 10.0f, 50.0f);
+		initialScale = (new Matrix4f()).scaling(100.0f, 10.0f, 100.0f);
 		terrain.setLocalScale(initialScale);
 		terrain.setHeightMap(hills);
 	}
@@ -299,18 +301,28 @@ public class MyGame extends VariableFrameRateGame
 
 		// --- create physics world ---
 		float mass = 1.0f;
-		float up[ ] = {0,1,0};
-		double[ ] tempTransform;
-		Matrix4f translation = new Matrix4f(creature.getLocalTranslation());
-		tempTransform = toDoubleArray(translation.get(vals));
-		creatureP = physicsEngine.addSphereObject(physicsEngine.nextUID(), mass, tempTransform, 0.75f);
+		float up[] = {0,1,0};
+		double[] creatureTempTransform, avatarTempTransform, terrainTempTransform;
+		float playerSize[] = {1, 5, 1};
+
+		Matrix4f creatureTranslation = new Matrix4f(creature.getLocalTranslation());
+		Matrix4f avatarTranslation = new Matrix4f(avatar.getLocalTranslation());
+		Matrix4f terrainTranslation = new Matrix4f(terrain.getLocalTranslation());
+
+		creatureTempTransform = toDoubleArray(creatureTranslation.get(creatureVals));
+		avatarTempTransform = toDoubleArray(avatarTranslation.get(avatarVals));
+		terrainTempTransform = toDoubleArray(terrainTranslation.get(terrainVals));
+		creatureP = physicsEngine.addSphereObject(physicsEngine.nextUID(), mass, creatureTempTransform, 0.75f);
 		creatureP.setBounciness(1.0f);
 		creature.setPhysicsObject(creatureP);
 
-		terrainP = physicsEngine.addStaticPlaneObject(physicsEngine.nextUID(), tempTransform, up, 0.0f);
+		terrainP = physicsEngine.addStaticPlaneObject(physicsEngine.nextUID(), terrainTempTransform, up, 0.0f);
 		terrainP.setBounciness(1.0f);
 		terrain.setPhysicsObject(terrainP);
 
+		//avatarP = physicsEngine.addBoxObject(counter, mass, avatarTempTransform, playerSize);
+		//avatarP.setBounciness(0.0f);
+		//avatar.setPhysicsObject(avatarP);
 
 
 
@@ -341,7 +353,7 @@ public class MyGame extends VariableFrameRateGame
 		orbitController.updateCameraPosition();
 		Vector3f loc = avatar.getWorldLocation();
 		float height = terrain.getHeight(loc.x(), loc.z());
-		avatar.setLocalLocation(new Vector3f(loc.x(), height+1f, loc.z()));
+		avatar.setLocalLocation(new Vector3f(loc.x(), height+5f, loc.z()));
 		processNetworking((float)elapsedTime);
 
 		// update physics

@@ -14,3 +14,6 @@ You can run multiple clients, even from one computer (although that
 can be a bit clumsy).
 
 The rest of the scene is the same as example #2b.
+
+SOURCES:
+Grass Texture - https://opengameart.org/content/seamless-grass-texture-ii
