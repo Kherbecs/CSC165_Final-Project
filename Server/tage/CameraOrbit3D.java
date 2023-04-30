@@ -30,7 +30,7 @@ public class CameraOrbit3D {
         avatar = av;
         cameraAzimuth = 0.0f;
         cameraElevation = 20.0f;
-        cameraRadius = 2.0f;
+        cameraRadius = 20.0f;
         setupInputs();
         updateCameraPosition();
     }
@@ -160,8 +160,8 @@ public class CameraOrbit3D {
             float radiusAmt;
             radiusAmt = -0.05f;
             cameraRadius += radiusAmt;
-            if (cameraRadius < 0.5f) {
-                cameraRadius = 0.5f;
+            if (cameraRadius < 10f) {
+                cameraRadius = 10f;
             }
             updateCameraPosition();
         }
@@ -172,8 +172,8 @@ public class CameraOrbit3D {
             float radiusAmt;
             radiusAmt = 0.05f;
             cameraRadius += radiusAmt;
-            if (cameraRadius > 4.0f) {
-                cameraRadius = 4.0f;
+            if (cameraRadius > 40f) {
+                cameraRadius = 40f;
             }
             updateCameraPosition();
         }

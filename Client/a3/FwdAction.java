@@ -7,11 +7,18 @@ import net.java.games.input.*;
 import net.java.games.input.Component.Identifier.*;
 import net.java.games.input.Event;
 import tage.input.action.AbstractInputAction;
+import tage.physics.PhysicsEngine;
+import tage.physics.PhysicsObject;
+import tage.physics.PhysicsEngineFactory;
+import tage.physics.JBullet.*;
+import com.bulletphysics.dynamics.RigidBody;
+import com.bulletphysics.collision.dispatch.CollisionObject;
 
 class FwdAction extends AbstractInputAction {
     private MyGame game;
 	private Camera cam;
 	private GameObject avatar;
+	private PhysicsObject avatarP;
 	private Vector3f oldPosition, newPosition, oldLocation, newTranslation, fwdDirection3f, currU, currV, currN;
 	private Vector4f fwdDirection;
 	private Matrix3f rotation;
