@@ -28,7 +28,9 @@ class FwdAction extends AbstractInputAction {
 	@Override
 	public void performAction(float time, Event e) {
 		avatar = game.getDolphin();
+		//avatarP = game.getAvatarP();
 		oldPosition = avatar.getLocalLocation();
+		//avatarP.applyForce(0f, 0f, 1f, oldPosition.x(), oldPosition.y(), oldPosition.z);
 		fwdDirection = new Vector4f(0f, 0f, 1f, 1f);
 		fwdDirection.mul(avatar.getWorldRotation());
 		fwdDirection.mul(0.005f*(float)game.getTimeSinceLastFrame());

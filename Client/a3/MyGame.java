@@ -55,7 +55,7 @@ public class MyGame extends VariableFrameRateGame
 	private ObjShape torS, ghostS, dolS, linxS, linyS, linzS, boxS;
 	private TextureImage doltx, ghostT;
 	private Light light;
-	private int fluffyClouds, lakeIslands;
+	private int fluffyClouds, lakeIslands, nightSky;
 
 	// SIMPLE CHARACTER
 	private GameObject simpleCharacter;
@@ -228,7 +228,8 @@ public class MyGame extends VariableFrameRateGame
 	public void loadSkyBoxes() {
 		fluffyClouds = (engine.getSceneGraph()).loadCubeMap("fluffyClouds");
 		lakeIslands = (engine.getSceneGraph()).loadCubeMap("lakeIslands");
-		(engine.getSceneGraph()).setActiveSkyBoxTexture(fluffyClouds);
+		nightSky = (engine.getSceneGraph()).loadCubeMap("nightSky");
+		(engine.getSceneGraph()).setActiveSkyBoxTexture(nightSky);
 		(engine.getSceneGraph()).setSkyBoxEnabled(true);
 	}
 	@Override
@@ -336,9 +337,9 @@ public class MyGame extends VariableFrameRateGame
 		terrain.setPhysicsObject(terrainP);
 
 		//player, if size y too big it seems to glitch into floor? maybe not understanding 
-		avatarP = physicsEngine.addBoxObject(physicsEngine.nextUID(), mass, avatarTempTransform, playerSize);
-		avatarP.setBounciness(0.0f);
-		avatar.setPhysicsObject(avatarP);
+		//avatarP = physicsEngine.addBoxObject(physicsEngine.nextUID(), mass, avatarTempTransform, playerSize);
+		//avatarP.setBounciness(0.0f);
+		//avatar.setPhysicsObject(avatarP);
 
 		//testing box
 		boxP = physicsEngine.addBoxObject(physicsEngine.nextUID(), mass, boxTempTransform, boxSize);
