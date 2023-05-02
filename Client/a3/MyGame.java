@@ -53,7 +53,7 @@ public class MyGame extends VariableFrameRateGame
 	private Vector3f globalZAxis = new Vector3f(0f, 0f, 1f);
 	private GameObject tor, avatar, x, y, z, box;
 	private ObjShape torS, ghostS, dolS, linxS, linyS, linzS, boxS;
-	private TextureImage doltx, ghostT;
+	private TextureImage doltx, ghostT, creatureX;
 	private Light light;
 	private int fluffyClouds, lakeIslands, nightSky;
 
@@ -64,7 +64,7 @@ public class MyGame extends VariableFrameRateGame
 
 	// CREATURE VARIABLES
 	private GameObject creature;
-	private TextureImage creatureT;
+	private TextureImage creaturetx;
 	private ObjShape creatureS;
 
 	// PHYSICS 
@@ -143,9 +143,11 @@ public class MyGame extends VariableFrameRateGame
 	{	doltx = new TextureImage("Dolphin_HighPolyUV.png");
 		ghostT = new TextureImage("redDolphin.jpg");
 		simpleCharX = new TextureImage("simplecharactertesttex.png");
+		creatureX = new TextureImage("creatureTx.png");
 		hills = new TextureImage("hmaptest.jpg");
 		grass = new TextureImage("grass.png");
-		creatureT =  new TextureImage("creatureTx.png");
+
+		//creaturetx =  new TextureImage("creatureTx.jpg")
 	}
 
 	@Override
@@ -176,12 +178,12 @@ public class MyGame extends VariableFrameRateGame
 		avatar.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationY((float)java.lang.Math.toRadians(90.0f)));
 
 		//build creature model
-		creature = new GameObject(GameObject.root(), creatureS, creatureT);
+		creature = new GameObject(GameObject.root(), creatureS, creatureX);
 		initialTranslation = (new Matrix4f()).translation(-10f, 3f, 0f);
 		creature.setLocalTranslation(initialTranslation);
 		initialScale = (new Matrix4f()).scaling(0.50f, 0.50f, 0.50f);
 		creature.setLocalScale(initialScale);
-		creature.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationY((float)java.lang.Math.toRadians(90.0f)));
+		creature.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationX((float)java.lang.Math.toRadians(-90.0f)));
 
 		// build torus along X axis
 		tor = new GameObject(GameObject.root(), torS);
