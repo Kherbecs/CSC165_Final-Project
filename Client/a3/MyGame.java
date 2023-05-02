@@ -126,7 +126,7 @@ public class MyGame extends VariableFrameRateGame
 		torS = new Torus(0.5f, 0.2f, 48);
 		ghostS = new Sphere();
 		dolS = new ImportedModel("dolphinHighPoly.obj");
-		simpleCharS = new ImportedModel("simplecharacter.obj");
+		simpleCharS = new ImportedModel("simpleCharV2.obj");
 		terrainS = new TerrainPlane(1000);
 
 		creatureS = new ImportedModel("creature.obj");
