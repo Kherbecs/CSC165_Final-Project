@@ -64,7 +64,7 @@ public class MyGame extends VariableFrameRateGame
 
 	// CREATURE VARIABLES
 	private GameObject creature;
-	private TextureImage creaturetx;
+	private TextureImage creatureT;
 	private ObjShape creatureS;
 
 	// PHYSICS 
@@ -145,8 +145,7 @@ public class MyGame extends VariableFrameRateGame
 		simpleCharX = new TextureImage("simplecharactertesttex.png");
 		hills = new TextureImage("hmaptest.jpg");
 		grass = new TextureImage("grass.png");
-
-		//creaturetx =  new TextureImage("creatureTx.jpg")
+		creatureT =  new TextureImage("creatureTx.png");
 	}
 
 	@Override
@@ -177,7 +176,7 @@ public class MyGame extends VariableFrameRateGame
 		avatar.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationY((float)java.lang.Math.toRadians(90.0f)));
 
 		//build creature model
-		creature = new GameObject(GameObject.root(), creatureS);
+		creature = new GameObject(GameObject.root(), creatureS, creatureT);
 		initialTranslation = (new Matrix4f()).translation(-10f, 3f, 0f);
 		creature.setLocalTranslation(initialTranslation);
 		initialScale = (new Matrix4f()).scaling(0.50f, 0.50f, 0.50f);
