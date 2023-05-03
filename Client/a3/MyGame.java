@@ -27,6 +27,9 @@ import tage.physics.JBullet.*;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 
+//Audio engine //
+import tage.audio.*;
+
 import net.java.games.input.*;
 import net.java.games.input.Component.Identifier.*;
 import net.java.games.input.Event;
@@ -66,6 +69,10 @@ public class MyGame extends VariableFrameRateGame
 	private GameObject creature;
 	private TextureImage creaturetx;
 	private ObjShape creatureS;
+
+	// AUDIO
+	private IAudioManager audioMgr;
+	private Sound ambienceSound;
 
 	// PHYSICS 
 	private PhysicsEngine physicsEngine;
@@ -347,7 +354,11 @@ public class MyGame extends VariableFrameRateGame
 		boxP.setBounciness(1.0f);
 		box.setPhysicsObject(boxP);
 
+		//Put in networking
 		setupNetworking();
+
+		//set up AUDIO
+		initAudio();
 	}
 
 	public GameObject getAvatar() { return avatar; }
@@ -397,7 +408,12 @@ public class MyGame extends VariableFrameRateGame
 				}
 			} 
 		}
+		//update Audio
+		ambienceSound.setLocation(avatar.getWorldLocation());
+		setEarParameters();
 	}
+
+
 	public PhysicsObject getAvatarP() {
 		return avatarP;
 	}
@@ -579,5 +595,33 @@ public class MyGame extends VariableFrameRateGame
 			{	protClient.sendByeMessage();
 			}
 		}
+	}
+
+	// ------------------------------ AUDIO SECTION -------------------------------------------
+	public void initAudio()
+	{ 
+		AudioResource resource1;
+		audioMgr = AudioManagerFactory.createAudioManager("tage.audio.joal.JOALAudioManager");
+		if (!audioMgr.initialize())
+		{
+			System.out.println("Audio Manager failed to initialize!");
+		return;
+		}
+		resource1 = audioMgr.createAudioResource("assets/sounds/ambience.wav", AudioResourceType.AUDIO_SAMPLE);
+		ambienceSound = new Sound(resource1,SoundType.SOUND_EFFECT, 100, true);
+		ambienceSound.initialize(audioMgr);
+		ambienceSound.setMaxDistance(10.0f);
+		ambienceSound.setMinDistance(0.5f);
+		ambienceSound.setRollOff(5.0f);
+		ambienceSound.setLocation(avatar.getWorldLocation());
+		setEarParameters();
+		ambienceSound.play();
+	}
+
+	public void setEarParameters()
+	{ 
+		Camera camera = (engine.getRenderSystem()).getViewport("MAIN").getCamera();
+		audioMgr.getEar().setLocation(avatar.getWorldLocation());
+		audioMgr.getEar().setOrientation(camera.getN(), new Vector3f(0.0f, 1.0f, 0.0f));
 	}
 }
