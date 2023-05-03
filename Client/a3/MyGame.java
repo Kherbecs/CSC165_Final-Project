@@ -149,7 +149,7 @@ public class MyGame extends VariableFrameRateGame
 	@Override
 	public void loadTextures()
 	{	ghostT = new TextureImage("redDolphin.jpg");
-		simpleCharX = new TextureImage("simplecharactertesttex.png");
+		simpleCharX = new TextureImage("simplecharactertx.png");
 		creatureX = new TextureImage("creatureTx.png");
 		hills = new TextureImage("hmaptest.jpg");
 		grass = new TextureImage("grass.png");
