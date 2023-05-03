@@ -27,7 +27,7 @@ import tage.physics.JBullet.*;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 
-//Audio engine //
+// AUDIO ENGINE //
 import tage.audio.*;
 
 import net.java.games.input.*;
@@ -70,10 +70,6 @@ public class MyGame extends VariableFrameRateGame
 	private TextureImage creaturetx;
 	private ObjShape creatureS;
 
-	// AUDIO
-	private IAudioManager audioMgr;
-	private Sound ambienceSound;
-
 	// PHYSICS 
 	private PhysicsEngine physicsEngine;
 	private PhysicsObject avatarP, creatureP, terrainP, boxP;
@@ -82,6 +78,10 @@ public class MyGame extends VariableFrameRateGame
 	private float avatarVals[] = new float[16];
 	private float terrainVals[] = new float[16];
 	private float boxVals[] = new float[16];
+	// AUDIO
+	private IAudioManager audioMgr;
+	private Sound ambienceSound;
+
 	// TERRAIN
 	private GameObject terrain;
 	private ObjShape terrainS;
@@ -354,10 +354,9 @@ public class MyGame extends VariableFrameRateGame
 		boxP.setBounciness(1.0f);
 		box.setPhysicsObject(boxP);
 
-		//Put in networking
 		setupNetworking();
 
-		//set up AUDIO
+		//setup audio
 		initAudio();
 	}
 
@@ -386,7 +385,7 @@ public class MyGame extends VariableFrameRateGame
 		Vector3f loc = avatar.getWorldLocation();
 		float height = terrain.getHeight(loc.x(), loc.z());
 		//avatarP.applyForce(1f, 0f, 0f, loc.x(), loc.y(), loc.z());
-		avatar.setLocalLocation(new Vector3f(loc.x(), height+5f, loc.z()));
+		avatar.setLocalLocation(new Vector3f(loc.x(), height+3.5f, loc.z()));
 		processNetworking((float)elapsedTime);
 
 		// update physics
@@ -408,12 +407,10 @@ public class MyGame extends VariableFrameRateGame
 				}
 			} 
 		}
-		//update Audio
+		//update audio
 		ambienceSound.setLocation(avatar.getWorldLocation());
 		setEarParameters();
 	}
-
-
 	public PhysicsObject getAvatarP() {
 		return avatarP;
 	}
@@ -551,7 +548,28 @@ public class MyGame extends VariableFrameRateGame
 		return ret;
 	}
 
-
+	public void initAudio() {
+		AudioResource resource1;
+		audioMgr = AudioManagerFactory.createAudioManager("tage.audio.joal.JOALAudioManager");
+		if (!audioMgr.initialize()) {
+			System.out.println("Audio Manager failed to initialize!");
+			return;
+		}
+		resource1 = audioMgr.createAudioResource("assets/sounds/ambience.wav", AudioResourceType.AUDIO_SAMPLE);
+		ambienceSound = new Sound(resource1, SoundType.SOUND_EFFECT, 100, true);
+		ambienceSound.initialize(audioMgr);
+		ambienceSound.setMaxDistance(10.0f);
+		ambienceSound.setMinDistance(0.5f);
+		ambienceSound.setRollOff(5.0f);
+		ambienceSound.setLocation(avatar.getWorldLocation());
+		setEarParameters();
+		ambienceSound.play();
+	}
+	public void setEarParameters() {
+		Camera camera = leftCamera;
+		audioMgr.getEar().setLocation(avatar.getWorldLocation());
+		audioMgr.getEar().setOrientation(camera.getN(), new Vector3f(0.0f, 1.0f, 0.0f));
+	}
 	// ---------- NETWORKING SECTION ----------------
 
 	public ObjShape getGhostShape() { return ghostS; }
@@ -595,33 +613,5 @@ public class MyGame extends VariableFrameRateGame
 			{	protClient.sendByeMessage();
 			}
 		}
-	}
-
-	// ------------------------------ AUDIO SECTION -------------------------------------------
-	public void initAudio()
-	{ 
-		AudioResource resource1;
-		audioMgr = AudioManagerFactory.createAudioManager("tage.audio.joal.JOALAudioManager");
-		if (!audioMgr.initialize())
-		{
-			System.out.println("Audio Manager failed to initialize!");
-		return;
-		}
-		resource1 = audioMgr.createAudioResource("assets/sounds/ambience.wav", AudioResourceType.AUDIO_SAMPLE);
-		ambienceSound = new Sound(resource1,SoundType.SOUND_EFFECT, 100, true);
-		ambienceSound.initialize(audioMgr);
-		ambienceSound.setMaxDistance(10.0f);
-		ambienceSound.setMinDistance(0.5f);
-		ambienceSound.setRollOff(5.0f);
-		ambienceSound.setLocation(avatar.getWorldLocation());
-		setEarParameters();
-		ambienceSound.play();
-	}
-
-	public void setEarParameters()
-	{ 
-		Camera camera = (engine.getRenderSystem()).getViewport("MAIN").getCamera();
-		audioMgr.getEar().setLocation(avatar.getWorldLocation());
-		audioMgr.getEar().setOrientation(camera.getN(), new Vector3f(0.0f, 1.0f, 0.0f));
 	}
 }
