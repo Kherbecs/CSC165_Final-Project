@@ -54,16 +54,17 @@ public class MyGame extends VariableFrameRateGame
 	private Vector3f globalXAxis = new Vector3f(1f, 0f, 0f);
 	private Vector3f globalYAxis = new Vector3f(0f, 1f, 0f);
 	private Vector3f globalZAxis = new Vector3f(0f, 0f, 1f);
-	private GameObject tor, avatar, x, y, z, box;
-	private ObjShape torS, ghostS, dolS, linxS, linyS, linzS, boxS;
-	private TextureImage doltx, ghostT, creatureX;
+	private GameObject avatar, x, y, z, box;
+	private ObjShape ghostS, linxS, linyS, linzS, boxS;
+	private TextureImage ghostT, creatureX;
 	private Light light;
 	private int fluffyClouds, lakeIslands, nightSky;
 
 	// SIMPLE CHARACTER
 	private GameObject simpleCharacter;
-	private ObjShape simpleCharS;
+	//private ObjShape simpleCharS;
 	private TextureImage simpleCharX;
+	private AnimatedShape simpleCharS;
 
 	// CREATURE VARIABLES
 	private GameObject creature;
@@ -72,12 +73,12 @@ public class MyGame extends VariableFrameRateGame
 
 	// PHYSICS 
 	private PhysicsEngine physicsEngine;
-	private PhysicsObject avatarP, creatureP, terrainP, boxP;
+	private PhysicsObject creatureP, terrainP;
 	private boolean running = true;
 	private float creatureVals[] = new float[16];
-	private float avatarVals[] = new float[16];
+	//private float avatarVals[] = new float[16];
 	private float terrainVals[] = new float[16];
-	private float boxVals[] = new float[16];
+	//private float boxVals[] = new float[16];
 	// AUDIO
 	private IAudioManager audioMgr;
 	private Sound ambienceSound;
@@ -130,15 +131,15 @@ public class MyGame extends VariableFrameRateGame
 		scriptFileLoadShapes = new File("assets/scripts/LoadShapes.js");
 		this.runScript(scriptFileLoadShapes);
 
-		torS = new Torus(0.5f, 0.2f, 48);
 		ghostS = new Sphere();
-		dolS = new ImportedModel("dolphinHighPoly.obj");
-		simpleCharS = new ImportedModel("simpleCharV2.obj");
+
+		//simpleCharS = new ImportedModel("simpleCharV3.obj");
+		simpleCharS = new AnimatedShape("simpleCharV3.rkm", "simpleCharV3.rks");
+		simpleCharS.loadAnimation("FLAP", "arms_flapping.rka");
+		simpleCharS.loadAnimation("WALK", "body_movement.rka");
 		terrainS = new TerrainPlane(1000);
 
 		creatureS = new ImportedModel("creature.obj");
-
-		boxS = new Cube();
 
 		linxS = (ObjShape)jsEngine.get("linxS");
 		linyS = (ObjShape)jsEngine.get("linyS");
@@ -147,8 +148,7 @@ public class MyGame extends VariableFrameRateGame
 
 	@Override
 	public void loadTextures()
-	{	doltx = new TextureImage("Dolphin_HighPolyUV.png");
-		ghostT = new TextureImage("redDolphin.jpg");
+	{	ghostT = new TextureImage("redDolphin.jpg");
 		simpleCharX = new TextureImage("simplecharactertesttex.png");
 		creatureX = new TextureImage("creatureTx.png");
 		hills = new TextureImage("hmaptest.jpg");
@@ -167,13 +167,6 @@ public class MyGame extends VariableFrameRateGame
 		scriptFileBuildObjects = new File("assets/scripts/BuildObjects.js");
 		this.runScript(scriptFileBuildObjects);
 
-		box = new GameObject(GameObject.root(), boxS);
-		initialTranslation = (new Matrix4f()).translation(0f, 5f, 10f);
-		box.setLocalTranslation((initialTranslation));
-		initialScale = (new Matrix4f()).scaling(1f, 1f, 1f);
-		box.setLocalScale(initialScale);
-
-
 		// build player avatar
 		avatar = new GameObject(GameObject.root(), simpleCharS, simpleCharX);
 		//initialTranslation = (Matrix4f)jsEngine.get("initPlayerTranslation");
@@ -182,23 +175,15 @@ public class MyGame extends VariableFrameRateGame
 		avatar.setLocalRotation((Matrix4f)jsEngine.get("initPlayerRotation"));
 		//initialScale = (new Matrix4f()).scaling(0.25f, 0.25f, 0.25f);
 		avatar.setLocalScale((Matrix4f)jsEngine.get("initAvatarScale"));
-		avatar.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationY((float)java.lang.Math.toRadians(90.0f)));
+		avatar.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationY((float)java.lang.Math.toRadians(270.0f)));
 
 		//build creature model
 		creature = new GameObject(GameObject.root(), creatureS, creatureX);
 		initialTranslation = (new Matrix4f()).translation(-10f, 3f, 0f);
 		creature.setLocalTranslation(initialTranslation);
-		initialScale = (new Matrix4f()).scaling(0.50f, 0.50f, 0.50f);
+		initialScale = (new Matrix4f()).scaling(1f, 1f, 1f);
 		creature.setLocalScale(initialScale);
 		creature.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationX((float)java.lang.Math.toRadians(-90.0f)));
-
-		// build torus along X axis
-		tor = new GameObject(GameObject.root(), torS);
-		initialTranslation = (new Matrix4f()).translation(1,0,0);
-		tor.setLocalTranslation(initialTranslation);
-		initialScale = (new Matrix4f()).scaling(0.25f);
-		tor.setLocalScale(initialScale);
-
 
 		// add X,Y,-Z axes
 		x = new GameObject(GameObject.root(), linxS);
@@ -320,22 +305,22 @@ public class MyGame extends VariableFrameRateGame
 		// --- create physics world ---
 		float mass = 1.0f;
 		float up[] = {0,1,0};
-		double[] creatureTempTransform, avatarTempTransform, terrainTempTransform, boxTempTransform;
-		float playerSize[] = {1f, 1f, 1f};
-		float boxSize[] = {1f, 1f, 1f};
+		double[] creatureTempTransform, terrainTempTransform;
+		//float playerSize[] = {1f, 1f, 1f};
+		//float boxSize[] = {1f, 1f, 1f};
 
 		Matrix4f creatureTranslation = new Matrix4f(creature.getLocalTranslation());
-		Matrix4f avatarTranslation = new Matrix4f(avatar.getLocalTranslation());
+		//Matrix4f avatarTranslation = new Matrix4f(avatar.getLocalTranslation());
 		Matrix4f terrainTranslation = new Matrix4f(terrain.getLocalTranslation());
-		Matrix4f boxTranslation = new Matrix4f(box.getLocalTranslation());
+		//Matrix4f boxTranslation = new Matrix4f(box.getLocalTranslation());
 
 		creatureTempTransform = toDoubleArray(creatureTranslation.get(creatureVals));
-		avatarTempTransform = toDoubleArray(avatarTranslation.get(avatarVals));
+		//avatarTempTransform = toDoubleArray(avatarTranslation.get(avatarVals));
 		terrainTempTransform = toDoubleArray(terrainTranslation.get(terrainVals));
-		boxTempTransform = toDoubleArray(boxTranslation.get(boxVals));
+		//boxTempTransform = toDoubleArray(boxTranslation.get(boxVals));
 
 		//this works as expected
-		creatureP = physicsEngine.addSphereObject(physicsEngine.nextUID(), mass, creatureTempTransform, 0.5f);
+		creatureP = physicsEngine.addSphereObject(physicsEngine.nextUID(), mass, creatureTempTransform, 1f);
 		creatureP.setBounciness(1.0f);
 		creature.setPhysicsObject(creatureP);
 
@@ -350,9 +335,9 @@ public class MyGame extends VariableFrameRateGame
 		//avatar.setPhysicsObject(avatarP);
 
 		//testing box
-		boxP = physicsEngine.addBoxObject(physicsEngine.nextUID(), mass, boxTempTransform, boxSize);
-		boxP.setBounciness(1.0f);
-		box.setPhysicsObject(boxP);
+		//boxP = physicsEngine.addBoxObject(physicsEngine.nextUID(), mass, boxTempTransform, boxSize);
+		//boxP.setBounciness(1.0f);
+		//box.setPhysicsObject(boxP);
 
 		setupNetworking();
 
@@ -365,7 +350,6 @@ public class MyGame extends VariableFrameRateGame
 
 	@Override
 	public void update() {
-		elapsedTime = System.currentTimeMillis() - prevTime;
 		lastFrameTime = currFrameTime;
 		currFrameTime = System.currentTimeMillis();
 		timeSinceLastFrame = currFrameTime - lastFrameTime;
@@ -410,10 +394,33 @@ public class MyGame extends VariableFrameRateGame
 		//update audio
 		ambienceSound.setLocation(avatar.getWorldLocation());
 		setEarParameters();
+		simpleCharS.updateAnimation();
 	}
-	public PhysicsObject getAvatarP() {
+	@Override
+public void keyPressed(KeyEvent e)
+{ switch (e.getKeyCode())
+{ case KeyEvent.VK_V:
+{ simpleCharS.stopAnimation();
+	simpleCharS.playAnimation("FLAP", 0.5f,
+AnimatedShape.EndType.LOOP, 0);
+break;
+}
+case KeyEvent.VK_B:
+{ simpleCharS.stopAnimation();
+	simpleCharS.playAnimation("WALK", 0.5f,
+AnimatedShape.EndType.LOOP, 0);
+break;
+}
+case KeyEvent.VK_H:
+{ simpleCharS.stopAnimation();
+break;
+}
+}
+super.keyPressed(e);
+}
+	/*public PhysicsObject getAvatarP() {
 		return avatarP;
-	}
+	}*/
 	public GameObject getDolphin() {
 		return avatar;
 	}
@@ -518,7 +525,6 @@ public class MyGame extends VariableFrameRateGame
 		} 
 	}
 
-
 	private float[] toFloatArray(double[] arr)
 	{ 
 		if (arr == null)
@@ -567,7 +573,7 @@ public class MyGame extends VariableFrameRateGame
 	}
 	public void setEarParameters() {
 		Camera camera = leftCamera;
-		audioMgr.getEar().setLocation(avatar.getWorldLocation());
+		audioMgr.getEar().setLocation(avatar.getLocalLocation());
 		audioMgr.getEar().setOrientation(camera.getN(), new Vector3f(0.0f, 1.0f, 0.0f));
 	}
 	// ---------- NETWORKING SECTION ----------------

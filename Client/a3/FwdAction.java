@@ -18,7 +18,7 @@ class FwdAction extends AbstractInputAction {
     private MyGame game;
 	private Camera cam;
 	private GameObject avatar;
-	private PhysicsObject avatarP;
+	//private PhysicsObject avatarP;
 	private Vector3f oldPosition, newPosition, oldLocation, newTranslation, fwdDirection3f, currU, currV, currN;
 	private Vector4f fwdDirection;
 	private Matrix3f rotation;

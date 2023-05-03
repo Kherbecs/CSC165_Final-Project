@@ -93,7 +93,7 @@ public class Camera
 	public void lookAt(float x, float y, float z)
 	{	setN((new Vector3f(x-location.x(), y-location.y(), z-location.z())).normalize());
 		Vector3f copyN = new Vector3f(n);
-		if (n.equals(0,1,0))
+		if ((n.equals(0,1,0)) || (n.equals(0, -1, 0)))
 			u = new Vector3f(1f,0f,0f);
 		else
 			u = (new Vector3f(copyN.cross(0f,1f,0f))).normalize();
