@@ -14,15 +14,15 @@ import tage.physics.JBullet.*;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 
-class FwdAction extends AbstractInputAction {
+class LeftAction extends AbstractInputAction {
     private MyGame game;
 	private Camera cam;
 	private GameObject avatar;
 	//private PhysicsObject avatarP;
 	private Vector3f oldPosition, newPosition, oldLocation, newTranslation, fwdDirection3f, currU, currV, currN;
-	private Vector4f fwdDirection;
+	private Vector4f leftdirection;
 	private Matrix3f rotation;
-	public FwdAction(MyGame g) {
+	public LeftAction(MyGame g) {
 		game = g;
 	}
 	@Override
@@ -31,10 +31,10 @@ class FwdAction extends AbstractInputAction {
 		//avatarP = game.getAvatarP();
 		oldPosition = avatar.getLocalLocation();
 		//avatarP.applyForce(0f, 0f, 1f, oldPosition.x(), oldPosition.y(), oldPosition.z);
-		fwdDirection = new Vector4f(-1f, 0f, 0f, 1f);
-		fwdDirection.mul(avatar.getWorldRotation());
-		fwdDirection.mul(0.005f*(float)game.getTimeSinceLastFrame());
-		newPosition = oldPosition.add(fwdDirection.x(), fwdDirection.y(), fwdDirection.z());
+		leftdirection = new Vector4f(0f, 0f, -1f, 1f);
+		leftdirection.mul(avatar.getWorldRotation());
+		leftdirection.mul(-0.005f*(float)game.getTimeSinceLastFrame());
+		newPosition = oldPosition.add(leftdirection.x(), leftdirection.y(), leftdirection.z());
 		avatar.setLocalLocation(newPosition);
 		game.getProtClient().sendMoveMessage(avatar.getWorldLocation());
 	}

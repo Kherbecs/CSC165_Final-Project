@@ -22,9 +22,9 @@ class BackAction extends AbstractInputAction {
 	public void performAction(float time, Event e) {
 		avatar = game.getDolphin();
 		oldPosition = avatar.getLocalLocation();
-		backDirection = new Vector4f(0f, 0f, 1f, 1f);
+		backDirection = new Vector4f(-1f, 0f, 0f, 1f);
 		backDirection.mul(avatar.getWorldRotation());
-		backDirection.mul(-0.001f*(float)game.getTimeSinceLastFrame());
+		backDirection.mul(-0.005f*(float)game.getTimeSinceLastFrame());
 		newPosition = oldPosition.add(backDirection.x(), backDirection.y(), backDirection.z());
 		avatar.setLocalLocation(newPosition);
 		game.getProtClient().sendMoveMessage(avatar.getWorldLocation());

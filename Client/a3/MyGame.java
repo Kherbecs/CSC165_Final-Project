@@ -39,8 +39,8 @@ import tage.networking.IGameConnection.ProtocolType;
 
 import javax.script.*;
 
-public class MyGame extends VariableFrameRateGame
-{
+public class MyGame extends VariableFrameRateGame {
+
 	private static Engine engine;
 	private InputManager im;
 	private GhostManager gm;
@@ -151,7 +151,7 @@ public class MyGame extends VariableFrameRateGame
 	{	ghostT = new TextureImage("redDolphin.jpg");
 		simpleCharX = new TextureImage("simplecharactertx.png");
 		creatureX = new TextureImage("creatureTx.png");
-		hills = new TextureImage("hmaptest.jpg");
+		hills = new TextureImage("hmapflat.jpg");
 		grass = new TextureImage("grass.png");
 
 		//creaturetx =  new TextureImage("creatureTx.jpg")
@@ -175,7 +175,7 @@ public class MyGame extends VariableFrameRateGame
 		avatar.setLocalRotation((Matrix4f)jsEngine.get("initPlayerRotation"));
 		//initialScale = (new Matrix4f()).scaling(0.25f, 0.25f, 0.25f);
 		avatar.setLocalScale((Matrix4f)jsEngine.get("initAvatarScale"));
-		avatar.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationY((float)java.lang.Math.toRadians(270.0f)));
+		avatar.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationY((float)java.lang.Math.toRadians(180.0f)));
 
 		//build creature model
 		creature = new GameObject(GameObject.root(), creatureS, creatureX);
@@ -247,6 +247,8 @@ public class MyGame extends VariableFrameRateGame
 		// keyboard inputs
 		FwdAction fwdAction = new FwdAction(this);
 		BackAction backAction = new BackAction(this);
+		LeftAction leftAction = new LeftAction(this);
+		RightAction rightAction = new RightAction(this);
 		TurnActionRight turnActionRight = new TurnActionRight(this);
 		TurnActionLeft turnActionLeft = new TurnActionLeft(this);
 		//TurnActionUp turnActionUp = new TurnActionUp(this);
@@ -270,8 +272,8 @@ public class MyGame extends VariableFrameRateGame
 		// associate kb inputs
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.W, fwdAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.S, backAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.D, turnActionRight, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.A, turnActionLeft, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.D, rightAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.A, leftAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		//im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.UP, turnActionUp, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		//im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.DOWN, turnActionDown, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		//im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.LEFT, rollActionLeft, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
@@ -354,14 +356,13 @@ public class MyGame extends VariableFrameRateGame
 		currFrameTime = System.currentTimeMillis();
 		timeSinceLastFrame = currFrameTime - lastFrameTime;
 		elapsedTime += (currFrameTime - lastFrameTime);
-		//Camera c = (engine.getRenderSystem()).getViewport("MAIN").getCamera();
-		
-		// build and set HUD
-		/*String dispStr2 = "camera position = "
-			+ (c.getLocation()).x()
-			+ ", " + (c.getLocation()).y()
-			+ ", " + (c.getLocation()).z();*/
-		//(engine.getHUDmanager()).setHUD2(dispStr2, hud2Color, 500, 15);
+		//build and set HUD
+		Vector3f hud2Color = new Vector3f(1f, 0, 0);
+		String dispStr2 = "player position = "
+			+ (avatar.getLocalLocation()).x()
+			+ ", " + (avatar.getLocalLocation()).y()
+			+ ", " + (avatar.getLocalLocation()).z();
+		(engine.getHUDmanager()).setHUD2(dispStr2, hud2Color, 500, 15);
 
 		// update inputs and camera
 		im.update((float)elapsedTime);
@@ -381,7 +382,10 @@ public class MyGame extends VariableFrameRateGame
 			physicsEngine.update((float)elapsedTime);
 			for (GameObject go:engine.getSceneGraph().getGameObjects())
 			{ 
-			if (go.getPhysicsObject() != null)
+			if (go.getPhysicsObject() == avatar) {
+				break;
+			}
+			else if (go.getPhysicsObject() != null)
 			{ 
 				mat.set(toFloatArray(go.getPhysicsObject().getTransform()));
 				mat2.set(3,0,mat.m30());
@@ -397,9 +401,9 @@ public class MyGame extends VariableFrameRateGame
 		simpleCharS.updateAnimation();
 	}
 	@Override
-public void keyPressed(KeyEvent e)
-{ switch (e.getKeyCode())
-{ case KeyEvent.VK_V:
+	public void keyPressed(KeyEvent e)
+	{ switch (e.getKeyCode())
+	{ case KeyEvent.VK_V:
 { simpleCharS.stopAnimation();
 	simpleCharS.playAnimation("FLAP", 0.5f,
 AnimatedShape.EndType.LOOP, 0);
