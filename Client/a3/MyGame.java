@@ -55,7 +55,8 @@ public class MyGame extends VariableFrameRateGame {
 	private Vector3f globalYAxis = new Vector3f(0f, 1f, 0f);
 	private Vector3f globalZAxis = new Vector3f(0f, 0f, 1f);
 	private GameObject avatar, x, y, z, box;
-	private ObjShape ghostS, linxS, linyS, linzS, boxS;
+	private ObjShape linxS, linyS, linzS, boxS;
+	private AnimatedShape ghostS;
 	private TextureImage ghostT, creatureX;
 	private Light light;
 	private int fluffyClouds, lakeIslands, nightSky;
@@ -88,6 +89,7 @@ public class MyGame extends VariableFrameRateGame {
 	private ObjShape terrainS;
 	private TextureImage hills, grass;
 
+	// VIEWPORTS AND CAMERAS
 	private Viewport leftVP;
 	private Viewport rightVP;
 	private Camera leftCamera;
@@ -104,6 +106,9 @@ public class MyGame extends VariableFrameRateGame {
 	private ProtocolType serverProtocol;
 	private ProtocolClient protClient;
 	private boolean isClientConnected = false;
+
+	// HUD
+	Vector3f hud1Color = new Vector3f(1f, 0, 0);
 
 	public MyGame(String serverAddress, int serverPort, String protocol)
 	{	super();
@@ -131,7 +136,9 @@ public class MyGame extends VariableFrameRateGame {
 		scriptFileLoadShapes = new File("assets/scripts/LoadShapes.js");
 		this.runScript(scriptFileLoadShapes);
 
-		ghostS = new Sphere();
+		ghostS = new AnimatedShape("simpleCharV3.rkm", "simpleCharV3.rks");
+		ghostS.loadAnimation("FLAP", "arms_flapping.rka");
+		ghostS.loadAnimation("WALK", "body_movement.rka");
 
 		//simpleCharS = new ImportedModel("simpleCharV3.obj");
 		simpleCharS = new AnimatedShape("simpleCharV3.rkm", "simpleCharV3.rks");
@@ -148,7 +155,7 @@ public class MyGame extends VariableFrameRateGame {
 
 	@Override
 	public void loadTextures()
-	{	ghostT = new TextureImage("redDolphin.jpg");
+	{	ghostT = new TextureImage("simplecharactertx.png");
 		simpleCharX = new TextureImage("simplecharactertx.png");
 		creatureX = new TextureImage("creatureTx.png");
 		hills = new TextureImage("hmapflat.jpg");
@@ -249,8 +256,8 @@ public class MyGame extends VariableFrameRateGame {
 		BackAction backAction = new BackAction(this);
 		LeftAction leftAction = new LeftAction(this);
 		RightAction rightAction = new RightAction(this);
-		TurnActionRight turnActionRight = new TurnActionRight(this);
-		TurnActionLeft turnActionLeft = new TurnActionLeft(this);
+		//TurnActionRight turnActionRight = new TurnActionRight(this);
+		//TurnActionLeft turnActionLeft = new TurnActionLeft(this);
 		//TurnActionUp turnActionUp = new TurnActionUp(this);
 		//TurnActionDown turnActionDown = new TurnActionDown(this);
 		//RollActionLeft rollActionLeft = new RollActionLeft(this);
@@ -357,12 +364,11 @@ public class MyGame extends VariableFrameRateGame {
 		timeSinceLastFrame = currFrameTime - lastFrameTime;
 		elapsedTime += (currFrameTime - lastFrameTime);
 		//build and set HUD
-		Vector3f hud2Color = new Vector3f(1f, 0, 0);
-		String dispStr2 = "player position = "
+		String dispStr1 = "player position = "
 			+ (avatar.getLocalLocation()).x()
 			+ ", " + (avatar.getLocalLocation()).y()
 			+ ", " + (avatar.getLocalLocation()).z();
-		(engine.getHUDmanager()).setHUD2(dispStr2, hud2Color, 500, 15);
+		(engine.getHUDmanager()).setHUD2(dispStr1, hud1Color, (int)leftVP.getRelativeLeft(), (int)leftVP.getRelativeBottom());
 
 		// update inputs and camera
 		im.update((float)elapsedTime);
@@ -370,7 +376,7 @@ public class MyGame extends VariableFrameRateGame {
 		Vector3f loc = avatar.getWorldLocation();
 		float height = terrain.getHeight(loc.x(), loc.z());
 		//avatarP.applyForce(1f, 0f, 0f, loc.x(), loc.y(), loc.z());
-		avatar.setLocalLocation(new Vector3f(loc.x(), height+3.5f, loc.z()));
+		avatar.setLocalLocation(new Vector3f(loc.x(), height+7f, loc.z()));
 		processNetworking((float)elapsedTime);
 
 		// update physics
