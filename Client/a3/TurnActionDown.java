@@ -22,7 +22,7 @@ class TurnActionDown extends AbstractInputAction {
 	}
 	@Override
 	public void performAction(float time, Event e) {
-		dol = game.getDolphin();
+		dol = game.getAvatar();
 		dol.setLocalRotation(dol.pitchObject(rollAmount*(float)game.getTimeSinceLastFrame(), newRotation));
 	}
 }

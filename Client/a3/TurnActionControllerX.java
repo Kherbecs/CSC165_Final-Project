@@ -23,11 +23,11 @@ class TurnActionControllerX extends AbstractInputAction {
 		float keyValue = e.getValue();
    		if (keyValue > -.2 && keyValue < .2) return;  // deadzone
 		if (keyValue < -.2) {
-			dol = game.getDolphin();
+			dol = game.getAvatar();
 			dol.setLocalRotation(dol.yawObject(rollAmount*(float)game.getTimeSinceLastFrame(), newRotation));
 		}
 		else if (keyValue > .2) {
-			dol = game.getDolphin();
+			dol = game.getAvatar();
 			dol.setLocalRotation(dol.yawObject(-rollAmount*(float)game.getTimeSinceLastFrame(), newRotation));
 		}
 	}

@@ -22,7 +22,7 @@ class TurnActionRight extends AbstractInputAction {
 	}
 	@Override
 	public void performAction(float time, Event e) {
-		avatar = game.getDolphin();
+		avatar = game.getAvatar();
 		avatar.setLocalRotation(avatar.yawObject(rollAmount*(float)game.getTimeSinceLastFrame(), newRotation));
 		//game.getProtClient().sendMoveMessage(avatar.getWorldRotation());
 	}

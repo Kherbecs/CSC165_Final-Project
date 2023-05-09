@@ -20,7 +20,7 @@ class BackAction extends AbstractInputAction {
 	}
 	@Override
 	public void performAction(float time, Event e) {
-		avatar = game.getDolphin();
+		avatar = game.getAvatar();
 		oldPosition = avatar.getLocalLocation();
 		backDirection = new Vector4f(-1f, 0f, 0f, 1f);
 		backDirection.mul(avatar.getWorldRotation());

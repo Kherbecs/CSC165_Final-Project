@@ -27,7 +27,7 @@ class LeftAction extends AbstractInputAction {
 	}
 	@Override
 	public void performAction(float time, Event e) {
-		avatar = game.getDolphin();
+		avatar = game.getAvatar();
 		//avatarP = game.getAvatarP();
 		oldPosition = avatar.getLocalLocation();
 		//avatarP.applyForce(0f, 0f, 1f, oldPosition.x(), oldPosition.y(), oldPosition.z);

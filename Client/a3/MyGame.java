@@ -80,6 +80,7 @@ public class MyGame extends VariableFrameRateGame {
 	//private float avatarVals[] = new float[16];
 	private float terrainVals[] = new float[16];
 	//private float boxVals[] = new float[16];
+
 	// AUDIO
 	private IAudioManager audioMgr;
 	private Sound ambienceSound;
@@ -160,8 +161,6 @@ public class MyGame extends VariableFrameRateGame {
 		creatureX = new TextureImage("creatureTx.png");
 		hills = new TextureImage("hmapflat.jpg");
 		grass = new TextureImage("grass.png");
-
-		//creaturetx =  new TextureImage("creatureTx.jpg")
 	}
 
 	@Override
@@ -213,15 +212,13 @@ public class MyGame extends VariableFrameRateGame {
 		/*light = new Light();
 		light.setLocation(new Vector3f(0f, 5f, 0f));
 		(engine.getSceneGraph()).addLight(light);*/
-		Light.setGlobalAmbient(.5f, .5f, .5f);
+		//Light.setGlobalAmbient(.5f, .5f, .5f);
 		ScriptEngineManager factory = new ScriptEngineManager();
 		jsEngine = factory.getEngineByName("js");
 
 		scriptFile1 = new File("assets/scripts/CreateLight.js");
 		this.runScript(scriptFile1);
 		(engine.getSceneGraph()).addLight((Light)jsEngine.get("light"));
-
-		Light.setGlobalAmbient(.5f, .5f, .5f);
 	}
 
 	@Override
@@ -431,9 +428,6 @@ super.keyPressed(e);
 	/*public PhysicsObject getAvatarP() {
 		return avatarP;
 	}*/
-	public GameObject getDolphin() {
-		return avatar;
-	}
 	public double getTimeSinceLastFrame() {
 		return timeSinceLastFrame;
 	}

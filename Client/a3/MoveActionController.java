@@ -23,7 +23,7 @@ class MoveActionController extends AbstractInputAction {
 		float keyValue = e.getValue();
 		if (keyValue > -.2 && keyValue < .2) return;  // deadzone
 		if (keyValue < -.2) {
-			dol = game.getDolphin();
+			dol = game.getAvatar();
 			oldPosition = dol.getWorldLocation();
 			fwdDirection = new Vector4f(0f, 0f, 1f, 1f);
 			fwdDirection.mul(dol.getWorldRotation());
@@ -32,7 +32,7 @@ class MoveActionController extends AbstractInputAction {
 			dol.setLocalLocation(newPosition);
 		}
 		else if (keyValue > .2) {
-			dol = game.getDolphin();
+			dol = game.getAvatar();
 			oldPosition = dol.getLocalLocation();
 			backDirection = new Vector4f(0f, 0f, 1f, 1f);
 			backDirection.mul(dol.getWorldRotation());
