@@ -1,6 +1,31 @@
+/* REQUIREMENTS
+ * EXTERNAL MODELS (MED PRIORITY): Create walking animation(s) for player, create some kind of animation for creature. Maybe the nose can move around, and/or the body can expand in and out as it breathes?
+ * For the creature, fix the faces, make the texture look less random. Maybe make the creature a little more complex of a model. The ghost avatar will just be a differently textured player
+ * unless we have more time.
+ * NETWORKED MULTIPLAYER (LOW PRIORITY): Currently functional, players will only be going forward so no need for a rotation message (add if more time). Modify protocol to send animation updates.
+ * May need further modification when physics are implemented.
+ * SCRIPTING (LOW PRIORITY): Do more initialization with scripting. Maybe some in-game parameters can be put to a script. 
+ * SKYBOX AND TERRAIN (LOW PRIORITY): Get physics to work with height map. Otherwise, done.
+ * LIGHTS (LOW PRIORITY): Need 2, technically done, but not effective use. Currently a spotlight on player spawn (1), probably going to try and add a flashlight to player that can be
+ * toggled on and off (2).
+ * HUD (LOW PRIORITY): There will be a string displayed top or bottom left that reads "Score: (integer score_variable)". At the moment, score will be gained when a player lands on a new platform
+ * (is completing the platformer). Shouldn't be difficult to implement.
+ * 3D SOUND (MED PRIORITY): We have background sound, but need some action-specific game sounds. Thinking one platform can have a bush that rustles when the player is near it.
+ * The player themselves can make sounds maybe? The creature can also have some kind of sound (either some kind of breathing or vocalization when near a player).
+ * HIERARCHICAL SCENEGRAPH (MED PRIORITY): As the player progresses, they will pick up items that boost their score. This items will hover around the player.
+ * ANIMATION (MED PRIORITY): Create animations for when player moves in the 4 main directions. Create diagonal animations if time. Create jumping animation if time.
+ * NPCS (HIGH PRIORITY): Add behavior for the creature so that it attemps to collide with a player. If it does, deduct player's score. Unsure how complex this pathfinding has to be.
+ * PHYSICS (HIGH PRIORITY): Current plan is that player will be controlled by physics. Since they cannot rotate, should be simple to push them in certain directions.
+ * Gravity should do most of the work when it comes to finding a way for the player to jump (push upwards, grav does its thing?). Platforms will be static physics objects that the
+ * player physics object can collide with. Hopefully we can implement this without a ton of difficulty.
+ * 
+ * PLEASE DON'T DELETE THIS TOP PART. It will be our guide for now. It would be helpful to document major changes we make, can add below.
+ *  
+ */
 package a3;
 
 import tage.*;
+import tage.Light.LightType;
 import tage.shapes.*;
 import tage.input.*;
 import tage.input.action.*;
@@ -111,6 +136,9 @@ public class MyGame extends VariableFrameRateGame {
 	// HUD
 	Vector3f hud1Color = new Vector3f(1f, 0, 0);
 
+	// LIGHT
+	Light flashlight;
+
 	public MyGame(String serverAddress, int serverPort, String protocol)
 	{	super();
 		gm = new GhostManager(this);
@@ -182,6 +210,7 @@ public class MyGame extends VariableFrameRateGame {
 		//initialScale = (new Matrix4f()).scaling(0.25f, 0.25f, 0.25f);
 		avatar.setLocalScale((Matrix4f)jsEngine.get("initAvatarScale"));
 		avatar.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationY((float)java.lang.Math.toRadians(180.0f)));
+		avatar.getRenderStates().hasLighting(true);
 
 		//build creature model
 		creature = new GameObject(GameObject.root(), creatureS, creatureX);
@@ -219,6 +248,18 @@ public class MyGame extends VariableFrameRateGame {
 		scriptFile1 = new File("assets/scripts/CreateLight.js");
 		this.runScript(scriptFile1);
 		(engine.getSceneGraph()).addLight((Light)jsEngine.get("light"));
+
+		flashlight = new Light();
+		flashlight.setType(LightType.SPOTLIGHT);
+		flashlight.setAmbient(.5f, .5f, .5f);
+		flashlight.setDiffuse(.7f, .7f, .7f);
+		flashlight.setSpecular(1.0f, 1.0f, 1.0f);
+		flashlight.setLocation(new Vector3f(0.0f, 50.0f, 0.0f));
+		flashlight.setRange(5f);
+		flashlight.setDirection(new Vector3f(0f, -1f, 0f));
+		flashlight.setCutoffAngle(10.0f);
+		flashlight.setOffAxisExponent(10.0f);
+		(engine.getSceneGraph()).addLight(flashlight);
 	}
 
 	@Override
