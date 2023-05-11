@@ -49,6 +49,7 @@ import tage.physics.PhysicsEngine;
 import tage.physics.PhysicsObject;
 import tage.physics.PhysicsEngineFactory;
 import tage.physics.JBullet.*;
+
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 
@@ -71,7 +72,7 @@ public class MyGame extends VariableFrameRateGame {
 	private GhostManager gm;
 
 	private int counter=0;
-	private Vector3f currentPosition;
+	private Vector3f currentPosition, loc, fwd, up, right;
 	private Matrix4f initialTranslation, initialRotation, initialScale;
 	private double startTime, elapsedTime, amt, timeSinceLastFrame, lastFrameTime, currFrameTime;
 	private double prevTime = 0;
@@ -202,9 +203,9 @@ public class MyGame extends VariableFrameRateGame {
 		// build player avatar
 		avatar = new GameObject(GameObject.root(), simpleCharS, simpleCharX);
 		avatar.setLocalTranslation((Matrix4f)jsEngine.get("initAvatarTranslation"));
-		avatar.setLocalRotation((Matrix4f)jsEngine.get("initPlayerRotation"));
+		//avatar.setLocalRotation((Matrix4f)jsEngine.get("initPlayerRotation"));
 		avatar.setLocalScale((Matrix4f)jsEngine.get("initAvatarScale"));
-		avatar.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationY((float)java.lang.Math.toRadians(180.0f)));
+		avatar.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationY((float)java.lang.Math.toRadians(-90.0f)));
 		avatar.getRenderStates().hasLighting(true);
 
 		//build creature model
@@ -282,7 +283,7 @@ public class MyGame extends VariableFrameRateGame {
 		// attach the action objects to keyboard and gamepad components
 		createViewports();
 		Camera c = leftCamera;
-		orbitController = new CameraOrbit3D(c, avatar, engine);
+		orbitController = new CameraOrbit3D(c, avatar, engine, 180f, 20f, 20f);
 		// keyboard inputs
 		FwdAction fwdAction = new FwdAction(this);
 		BackAction backAction = new BackAction(this);
@@ -397,6 +398,7 @@ public class MyGame extends VariableFrameRateGame {
 		(engine.getHUDmanager()).setHUD2(dispStr1, hud1Color, (int)leftVP.getRelativeLeft(), (int)leftVP.getRelativeBottom());
 		// update inputs and camera
 		im.update((float)elapsedTime);
+		//positionCameraBehindAvatar();
 		orbitController.updateCameraPosition();
 		processNetworking((float)elapsedTime);
 		protClient.sendMoveMessage(avatar.getWorldLocation());
@@ -464,7 +466,7 @@ super.keyPressed(e);
 		rightVP.setBorderWidth(1);
 		rightVP.setBorderColor(0.0f, 1.0f, 0.0f);
 
-		leftCamera.setLocation(new Vector3f(-2,0,2));
+		leftCamera.setLocation(new Vector3f(0,0,0));
 		leftCamera.setU(new Vector3f(1,0,0));
 		leftCamera.setV(new Vector3f(0,1,0));
 		leftCamera.setN(new Vector3f(0,0,-1));
@@ -550,7 +552,7 @@ super.keyPressed(e);
 		} 
 	}
 
-	private float[] toFloatArray(double[] arr)
+	public float[] toFloatArray(double[] arr)
 	{ 
 		if (arr == null)
 		{

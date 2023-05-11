@@ -44,7 +44,7 @@ class RightAction extends AbstractInputAction {
 		avatar = game.getAvatar();
 		avatarP = game.getAvatarP();
 		loc = avatar.getLocalLocation();
-		avatarP.applyForce(0f, 0f, 1f*(float)game.getTimeSinceLastFrame(), loc.x(), loc.y(), loc.z());
+		avatarP.applyForce(-1f*(float)game.getTimeSinceLastFrame(), 0f, 0f, loc.x(), loc.y(), loc.z());
 		game.getProtClient().sendMoveMessage(avatar.getWorldLocation());
 	}
 }

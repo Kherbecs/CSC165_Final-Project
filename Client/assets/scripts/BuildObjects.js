@@ -3,5 +3,4 @@ var JavaPackages = new JavaImporter(Packages.org.joml.Matrix4f, Packages.tage.Ga
 with (JavaPackages) {
     var initAvatarTranslation = (new Matrix4f()).translation(0, 10, 0);
     var initAvatarScale = (new Matrix4f()).scaling(1, 1, 1);
-    var initPlayerRotation = (new Matrix4f()).rotationY(java.lang.Math.toRadians(180.0));
 }
