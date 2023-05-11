@@ -215,6 +215,9 @@ public class MyGame extends VariableFrameRateGame {
 		creature.setLocalScale(initialScale);
 		creature.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationX((float)java.lang.Math.toRadians(-90.0f)));
 
+		for (int i = 0; i < 10; i++) {
+
+		}
 		// add X,Y,Z axes
 		x = new GameObject(GameObject.root(), linxS);
 		y = new GameObject(GameObject.root(), linyS);
@@ -370,7 +373,7 @@ public class MyGame extends VariableFrameRateGame {
 		avatarP = physicsEngine.addSphereObject(physicsEngine.nextUID(), mass, avatarTempTransform, playerSize);
 		avatarP.setBounciness(0.0f);
 		avatar.setPhysicsObject(avatarP);
-
+		avatarP.getRigidBody().setActivationState(CollisionObject.DISABLE_DEACTIVATION);
 		setupNetworking();
 
 		//setup audio
@@ -392,26 +395,19 @@ public class MyGame extends VariableFrameRateGame {
 			+ ", " + (avatar.getLocalLocation()).y()
 			+ ", " + (avatar.getLocalLocation()).z();
 		(engine.getHUDmanager()).setHUD2(dispStr1, hud1Color, (int)leftVP.getRelativeLeft(), (int)leftVP.getRelativeBottom());
-
 		// update inputs and camera
 		im.update((float)elapsedTime);
 		orbitController.updateCameraPosition();
 		processNetworking((float)elapsedTime);
 
 		// update physics
-		if (running)
-		{
+		if (running) {
 			Matrix4f mat = new Matrix4f();
 			Matrix4f mat2 = new Matrix4f().identity();
 			checkForCollisions();
 			physicsEngine.update((float)elapsedTime);
-			for (GameObject go:engine.getSceneGraph().getGameObjects())
-			{ 
-			if (go.getPhysicsObject() == avatar) {
-				break;
-			}
-			else if (go.getPhysicsObject() != null)
-			{ 
+			for (GameObject go:engine.getSceneGraph().getGameObjects()) { 
+			if (go.getPhysicsObject() != null) { 
 				mat.set(toFloatArray(go.getPhysicsObject().getTransform()));
 				mat2.set(3,0,mat.m30());
 				mat2.set(3,1,mat.m31());

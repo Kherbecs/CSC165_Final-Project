@@ -41,9 +41,18 @@ class FwdAction extends AbstractInputAction {
 	}*/
 	@Override
 	public void performAction(float time, Event e) {
+		cam = game.getLeftCamera();
 		avatar = game.getAvatar();
 		avatarP = game.getAvatarP();
 		loc = avatar.getLocalLocation();
-		avatarP.applyForce(1f*(float)game.getTimeSinceLastFrame(), 0f, 0f, loc.x(), loc.y(), loc.z());
+
+		avatarP.applyForce(1f*(float)game.getTimeSinceLastFrame(), 0f, 0f, cam.getN().x(), cam.getN().y(), cam.getN().z());
+	
 	}
+	/*@Override
+	public void performAction(float time, Event e) {
+		avatar = game.getAvatar();
+		avatarP = game.getAvatarP();
+		avatarP.getTransform()
+	}*/
 }
