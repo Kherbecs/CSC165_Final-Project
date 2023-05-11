@@ -164,14 +164,14 @@ public class MyGame extends VariableFrameRateGame {
 		scriptFileLoadShapes = new File("assets/scripts/LoadShapes.js");
 		this.runScript(scriptFileLoadShapes);
 
-		ghostS = new AnimatedShape("simpleCharV3.rkm", "simpleCharV3.rks");
-		ghostS.loadAnimation("FLAP", "arms_flapping.rka");
-		ghostS.loadAnimation("WALK", "body_movement.rka");
+		ghostS = new AnimatedShape("simpleCharFinal.rkm", "simpleCharFinal.rks");
+		ghostS.loadAnimation("idle", "idle_1.rka");
 
 		//simpleCharS = new ImportedModel("simpleCharV3.obj");
-		simpleCharS = new AnimatedShape("simpleCharV3.rkm", "simpleCharV3.rks");
-		simpleCharS.loadAnimation("FLAP", "arms_flapping.rka");
-		simpleCharS.loadAnimation("WALK", "body_movement.rka");
+		simpleCharS = new AnimatedShape("simpleCharFinal.rkm", "simpleCharFinal.rks");
+		simpleCharS.loadAnimation("idle", "idle_1.rka");
+		simpleCharS.playAnimation("idle", 0.25f, AnimatedShape.EndType.LOOP, 0);
+
 		terrainS = new TerrainPlane(1000);
 
 		creatureS = new ImportedModel("creature.obj");
@@ -184,7 +184,7 @@ public class MyGame extends VariableFrameRateGame {
 	@Override
 	public void loadTextures()
 	{	ghostT = new TextureImage("simplecharactertx.png");
-		simpleCharX = new TextureImage("simplecharactertx.png");
+		simpleCharX = new TextureImage("simpleCharFinal.png");
 		creatureX = new TextureImage("creatureTx.png");
 		hills = new TextureImage("hmaphills1.jpg");
 		grass = new TextureImage("grass.png");
@@ -409,12 +409,12 @@ public class MyGame extends VariableFrameRateGame {
 			checkForCollisions();
 			physicsEngine.update((float)elapsedTime);
 			for (GameObject go:engine.getSceneGraph().getGameObjects()) { 
-			if (go.getPhysicsObject() != null) { 
-				mat.set(toFloatArray(go.getPhysicsObject().getTransform()));
-				mat2.set(3,0,mat.m30());
-				mat2.set(3,1,mat.m31());
-				mat2.set(3,2,mat.m32());
-				go.setLocalTranslation(mat2);
+				if (go.getPhysicsObject() != null) { 
+					mat.set(toFloatArray(go.getPhysicsObject().getTransform()));
+					mat2.set(3,0,mat.m30());
+					mat2.set(3,1,mat.m31());
+					mat2.set(3,2,mat.m32());
+					go.setLocalTranslation(mat2);
 				}
 			} 
 		}
@@ -426,28 +426,6 @@ public class MyGame extends VariableFrameRateGame {
 		setEarParameters();
 		simpleCharS.updateAnimation();
 	}
-	@Override
-	public void keyPressed(KeyEvent e)
-	{ switch (e.getKeyCode())
-	{ case KeyEvent.VK_V:
-{ simpleCharS.stopAnimation();
-	simpleCharS.playAnimation("FLAP", 0.5f,
-AnimatedShape.EndType.LOOP, 0);
-break;
-}
-case KeyEvent.VK_B:
-{ simpleCharS.stopAnimation();
-	simpleCharS.playAnimation("WALK", 0.5f,
-AnimatedShape.EndType.LOOP, 0);
-break;
-}
-case KeyEvent.VK_H:
-{ simpleCharS.stopAnimation();
-break;
-}
-}
-super.keyPressed(e);
-}
 	public PhysicsObject getAvatarP() {
 		return avatarP;
 	}
