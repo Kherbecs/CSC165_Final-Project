@@ -285,6 +285,7 @@ public class MyGame extends VariableFrameRateGame {
 		BackAction backAction = new BackAction(this);
 		LeftAction leftAction = new LeftAction(this);
 		RightAction rightAction = new RightAction(this);
+		JumpAction jumpAction = new JumpAction(this);
 		//TurnActionRight turnActionRight = new TurnActionRight(this);
 		//TurnActionLeft turnActionLeft = new TurnActionLeft(this);
 		//TurnActionUp turnActionUp = new TurnActionUp(this);
@@ -310,6 +311,7 @@ public class MyGame extends VariableFrameRateGame {
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.S, backAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.D, rightAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.A, leftAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.Z, jumpAction, InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 		//im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.UP, turnActionUp, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		//im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.DOWN, turnActionDown, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		//im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.LEFT, rollActionLeft, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
@@ -420,7 +422,7 @@ public class MyGame extends VariableFrameRateGame {
 		}
 		Vector3f loc = avatar.getWorldLocation();
 		float height = terrain.getHeight(loc.x(), loc.z());
-		avatar.setLocalLocation(new Vector3f(loc.x(), height+7f, loc.z()));
+		//avatar.setLocalLocation(new Vector3f(loc.x(), height+7f, loc.z()));
 		//update audio
 		ambienceSound.setLocation(avatar.getWorldLocation());
 		setEarParameters();

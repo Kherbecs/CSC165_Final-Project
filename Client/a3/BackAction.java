@@ -19,9 +19,10 @@ class BackAction extends AbstractInputAction {
 	private Camera cam;
 	private GameObject avatar;
 	private PhysicsObject avatarP;
-	private Vector3f oldPosition, newPosition, fwdDirection3f, currU, currV, currN;
-	private Matrix3f rotation;
-	private Vector4f backDirection;
+	private Vector3f loc;
+	//private Vector3f oldPosition, newPosition, fwdDirection3f, currU, currV, currN;
+	//private Matrix3f rotation;
+	//private Vector4f backDirection;
 	public BackAction(MyGame g) {
 		game = g;
 	}
@@ -40,7 +41,7 @@ class BackAction extends AbstractInputAction {
 	public void performAction(float time, Event e) {
 		avatar = game.getAvatar();
 		avatarP = game.getAvatarP();
-		oldPosition = avatar.getLocalLocation();
-		avatarP.applyForce(-1f*(float)game.getTimeSinceLastFrame(), 0f, 0f, oldPosition.x(), oldPosition.y(), oldPosition.z());
+		loc = avatar.getLocalLocation();
+		avatarP.applyForce(-1f*(float)game.getTimeSinceLastFrame(), 0f, 0f, loc.x(), loc.y(), loc.z());
 	}
 }
