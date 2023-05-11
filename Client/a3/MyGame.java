@@ -88,7 +88,6 @@ public class MyGame extends VariableFrameRateGame {
 
 	// SIMPLE CHARACTER
 	private GameObject simpleCharacter;
-	//private ObjShape simpleCharS;
 	private TextureImage simpleCharX;
 	private AnimatedShape simpleCharS;
 
@@ -99,12 +98,11 @@ public class MyGame extends VariableFrameRateGame {
 
 	// PHYSICS 
 	private PhysicsEngine physicsEngine;
-	private PhysicsObject creatureP, terrainP;
+	private PhysicsObject creatureP, terrainP, avatarP;
 	private boolean running = true;
 	private float creatureVals[] = new float[16];
-	//private float avatarVals[] = new float[16];
+	private float avatarVals[] = new float[16];
 	private float terrainVals[] = new float[16];
-	//private float boxVals[] = new float[16];
 
 	// AUDIO
 	private IAudioManager audioMgr;
@@ -187,7 +185,7 @@ public class MyGame extends VariableFrameRateGame {
 	{	ghostT = new TextureImage("simplecharactertx.png");
 		simpleCharX = new TextureImage("simplecharactertx.png");
 		creatureX = new TextureImage("creatureTx.png");
-		hills = new TextureImage("hmapflat.jpg");
+		hills = new TextureImage("hmaphills1.jpg");
 		grass = new TextureImage("grass.png");
 	}
 
@@ -203,11 +201,8 @@ public class MyGame extends VariableFrameRateGame {
 
 		// build player avatar
 		avatar = new GameObject(GameObject.root(), simpleCharS, simpleCharX);
-		//initialTranslation = (Matrix4f)jsEngine.get("initPlayerTranslation");
 		avatar.setLocalTranslation((Matrix4f)jsEngine.get("initAvatarTranslation"));
-		//initialRotation = (new Matrix4f()).rotationY((float)java.lang.Math.toRadians(135.0f));
 		avatar.setLocalRotation((Matrix4f)jsEngine.get("initPlayerRotation"));
-		//initialScale = (new Matrix4f()).scaling(0.25f, 0.25f, 0.25f);
 		avatar.setLocalScale((Matrix4f)jsEngine.get("initAvatarScale"));
 		avatar.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationY((float)java.lang.Math.toRadians(180.0f)));
 		avatar.getRenderStates().hasLighting(true);
@@ -220,7 +215,7 @@ public class MyGame extends VariableFrameRateGame {
 		creature.setLocalScale(initialScale);
 		creature.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationX((float)java.lang.Math.toRadians(-90.0f)));
 
-		// add X,Y,-Z axes
+		// add X,Y,Z axes
 		x = new GameObject(GameObject.root(), linxS);
 		y = new GameObject(GameObject.root(), linyS);
 		z = new GameObject(GameObject.root(), linzS);
@@ -238,9 +233,6 @@ public class MyGame extends VariableFrameRateGame {
 
 	@Override
 	public void initializeLights() {
-		/*light = new Light();
-		light.setLocation(new Vector3f(0f, 5f, 0f));
-		(engine.getSceneGraph()).addLight(light);*/
 		//Light.setGlobalAmbient(.5f, .5f, .5f);
 		ScriptEngineManager factory = new ScriptEngineManager();
 		jsEngine = factory.getEngineByName("js");
@@ -284,7 +276,6 @@ public class MyGame extends VariableFrameRateGame {
 		im = engine.getInputManager();
 
 		// build some action objects for doing things in response to user input
-
 		// attach the action objects to keyboard and gamepad components
 		createViewports();
 		Camera c = leftCamera;
@@ -352,19 +343,16 @@ public class MyGame extends VariableFrameRateGame {
 		// --- create physics world ---
 		float mass = 1.0f;
 		float up[] = {0,1,0};
-		double[] creatureTempTransform, terrainTempTransform;
-		//float playerSize[] = {1f, 1f, 1f};
-		//float boxSize[] = {1f, 1f, 1f};
+		double[] creatureTempTransform, terrainTempTransform, avatarTempTransform;
+		float playerSize = 7f;
 
 		Matrix4f creatureTranslation = new Matrix4f(creature.getLocalTranslation());
-		//Matrix4f avatarTranslation = new Matrix4f(avatar.getLocalTranslation());
+		Matrix4f avatarTranslation = new Matrix4f(avatar.getLocalTranslation());
 		Matrix4f terrainTranslation = new Matrix4f(terrain.getLocalTranslation());
-		//Matrix4f boxTranslation = new Matrix4f(box.getLocalTranslation());
 
 		creatureTempTransform = toDoubleArray(creatureTranslation.get(creatureVals));
-		//avatarTempTransform = toDoubleArray(avatarTranslation.get(avatarVals));
+		avatarTempTransform = toDoubleArray(avatarTranslation.get(avatarVals));
 		terrainTempTransform = toDoubleArray(terrainTranslation.get(terrainVals));
-		//boxTempTransform = toDoubleArray(boxTranslation.get(boxVals));
 
 		//this works as expected
 		creatureP = physicsEngine.addSphereObject(physicsEngine.nextUID(), mass, creatureTempTransform, 1f);
@@ -372,19 +360,14 @@ public class MyGame extends VariableFrameRateGame {
 		creature.setPhysicsObject(creatureP);
 
 		//find out what plane_constant (fourth argument) does, maybe some mismatch between heightmap and physics object?
-		terrainP = physicsEngine.addStaticPlaneObject(physicsEngine.nextUID(), terrainTempTransform, up, 0.0f);
+		terrainP = physicsEngine.addStaticPlaneObject(physicsEngine.nextUID(), terrainTempTransform, up, 1.0f);
 		terrainP.setBounciness(1.0f);
 		terrain.setPhysicsObject(terrainP);
 
-		//player, if size y too big it seems to glitch into floor? maybe not understanding 
-		//avatarP = physicsEngine.addBoxObject(physicsEngine.nextUID(), mass, avatarTempTransform, playerSize);
-		//avatarP.setBounciness(0.0f);
-		//avatar.setPhysicsObject(avatarP);
-
-		//testing box
-		//boxP = physicsEngine.addBoxObject(physicsEngine.nextUID(), mass, boxTempTransform, boxSize);
-		//boxP.setBounciness(1.0f);
-		//box.setPhysicsObject(boxP);
+		//player, spherical hit box does not seem to have issues
+		avatarP = physicsEngine.addSphereObject(physicsEngine.nextUID(), mass, avatarTempTransform, playerSize);
+		avatarP.setBounciness(0.0f);
+		avatar.setPhysicsObject(avatarP);
 
 		setupNetworking();
 
@@ -411,10 +394,6 @@ public class MyGame extends VariableFrameRateGame {
 		// update inputs and camera
 		im.update((float)elapsedTime);
 		orbitController.updateCameraPosition();
-		Vector3f loc = avatar.getWorldLocation();
-		float height = terrain.getHeight(loc.x(), loc.z());
-		//avatarP.applyForce(1f, 0f, 0f, loc.x(), loc.y(), loc.z());
-		avatar.setLocalLocation(new Vector3f(loc.x(), height+7f, loc.z()));
 		processNetworking((float)elapsedTime);
 
 		// update physics
@@ -439,6 +418,9 @@ public class MyGame extends VariableFrameRateGame {
 				}
 			} 
 		}
+		Vector3f loc = avatar.getWorldLocation();
+		float height = terrain.getHeight(loc.x(), loc.z());
+		avatar.setLocalLocation(new Vector3f(loc.x(), height+7f, loc.z()));
 		//update audio
 		ambienceSound.setLocation(avatar.getWorldLocation());
 		setEarParameters();
@@ -466,9 +448,9 @@ break;
 }
 super.keyPressed(e);
 }
-	/*public PhysicsObject getAvatarP() {
+	public PhysicsObject getAvatarP() {
 		return avatarP;
-	}*/
+	}
 	public double getTimeSinceLastFrame() {
 		return timeSinceLastFrame;
 	}

@@ -18,14 +18,14 @@ class RightAction extends AbstractInputAction {
     private MyGame game;
 	private Camera cam;
 	private GameObject avatar;
-	//private PhysicsObject avatarP;
+	private PhysicsObject avatarP;
 	private Vector3f oldPosition, newPosition, oldLocation, newTranslation, fwdDirection3f, currU, currV, currN;
 	private Vector4f rightDirection;
 	private Matrix3f rotation;
 	public RightAction(MyGame g) {
 		game = g;
 	}
-	@Override
+	/*@Override
 	public void performAction(float time, Event e) {
 		avatar = game.getAvatar();
 		//avatarP = game.getAvatarP();
@@ -37,5 +37,12 @@ class RightAction extends AbstractInputAction {
 		newPosition = oldPosition.add(rightDirection.x(), rightDirection.y(), rightDirection.z());
 		avatar.setLocalLocation(newPosition);
 		game.getProtClient().sendMoveMessage(avatar.getWorldLocation());
+	}*/
+	@Override
+	public void performAction(float time, Event e) {
+		avatar = game.getAvatar();
+		avatarP = game.getAvatarP();
+		oldPosition = avatar.getLocalLocation();
+		avatarP.applyForce(0f, 0f, 1f*(float)game.getTimeSinceLastFrame(), oldPosition.x(), oldPosition.y(), oldPosition.z());
 	}
 }

@@ -7,18 +7,25 @@ import net.java.games.input.*;
 import net.java.games.input.Component.Identifier.*;
 import net.java.games.input.Event;
 import tage.input.action.AbstractInputAction;
+import tage.physics.PhysicsEngine;
+import tage.physics.PhysicsObject;
+import tage.physics.PhysicsEngineFactory;
+import tage.physics.JBullet.*;
+import com.bulletphysics.dynamics.RigidBody;
+import com.bulletphysics.collision.dispatch.CollisionObject;
 
 class BackAction extends AbstractInputAction {
 	private MyGame game;
 	private Camera cam;
 	private GameObject avatar;
+	private PhysicsObject avatarP;
 	private Vector3f oldPosition, newPosition, fwdDirection3f, currU, currV, currN;
 	private Matrix3f rotation;
 	private Vector4f backDirection;
 	public BackAction(MyGame g) {
 		game = g;
 	}
-	@Override
+	/*@Override
 	public void performAction(float time, Event e) {
 		avatar = game.getAvatar();
 		oldPosition = avatar.getLocalLocation();
@@ -28,5 +35,12 @@ class BackAction extends AbstractInputAction {
 		newPosition = oldPosition.add(backDirection.x(), backDirection.y(), backDirection.z());
 		avatar.setLocalLocation(newPosition);
 		game.getProtClient().sendMoveMessage(avatar.getWorldLocation());
+	}*/
+	@Override
+	public void performAction(float time, Event e) {
+		avatar = game.getAvatar();
+		avatarP = game.getAvatarP();
+		oldPosition = avatar.getLocalLocation();
+		avatarP.applyForce(-1f*(float)game.getTimeSinceLastFrame(), 0f, 0f, oldPosition.x(), oldPosition.y(), oldPosition.z());
 	}
 }
