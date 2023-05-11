@@ -80,8 +80,8 @@ public class MyGame extends VariableFrameRateGame {
 	private Vector3f globalXAxis = new Vector3f(1f, 0f, 0f);
 	private Vector3f globalYAxis = new Vector3f(0f, 1f, 0f);
 	private Vector3f globalZAxis = new Vector3f(0f, 0f, 1f);
-	private GameObject avatar, x, y, z, box;
-	private ObjShape linxS, linyS, linzS, boxS;
+	private GameObject avatar, x, y, z, platform;
+	private ObjShape linxS, linyS, linzS, platformS;
 	private AnimatedShape ghostS;
 	private TextureImage ghostT, creatureX;
 	private Light light;
@@ -138,6 +138,9 @@ public class MyGame extends VariableFrameRateGame {
 	// LIGHT
 	Light flashlight;
 
+	// PLATFORMS
+	private PlatformCollection platforms;
+
 	public MyGame(String serverAddress, int serverPort, String protocol)
 	{	super();
 		gm = new GhostManager(this);
@@ -176,9 +179,13 @@ public class MyGame extends VariableFrameRateGame {
 
 		creatureS = new ImportedModel("creature.obj");
 
+
 		linxS = (ObjShape)jsEngine.get("linxS");
 		linyS = (ObjShape)jsEngine.get("linyS");
 		linzS = (ObjShape)jsEngine.get("linzS");
+
+		// platform section
+		platformS = new Cube();
 	}
 
 	@Override
@@ -216,9 +223,6 @@ public class MyGame extends VariableFrameRateGame {
 		creature.setLocalScale(initialScale);
 		creature.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationX((float)java.lang.Math.toRadians(-90.0f)));
 
-		for (int i = 0; i < 10; i++) {
-
-		}
 		// add X,Y,Z axes
 		x = new GameObject(GameObject.root(), linxS);
 		y = new GameObject(GameObject.root(), linyS);
@@ -233,6 +237,15 @@ public class MyGame extends VariableFrameRateGame {
 		initialScale = (new Matrix4f()).scaling(100.0f, 10.0f, 100.0f);
 		terrain.setLocalScale(initialScale);
 		terrain.setHeightMap(hills);
+
+		// platform section
+		platforms = new PlatformCollection(GameObject.root(), platformS); // create platforms, pass reference to root and ObjShape
+		float zTranslation = 50f;
+		for (Platform p : platforms.getPlatformList()) {
+			initialTranslation = (new Matrix4f()).translation(0f, 0f, zTranslation);
+			p.getPlatformObj().setLocalTranslation(initialTranslation);
+			zTranslation += 50f;
+		}
 	}
 
 	@Override
