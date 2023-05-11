@@ -129,7 +129,7 @@ public class ProtocolClient extends GameConnectionClient
 		{	e.printStackTrace();
 	}	}
 	
-	// Informs the server of the client’s Avatar’s position. The server 
+	// Informs the server of the clientï¿½s Avatarï¿½s position. The server 
 	// takes this message and forwards it to all other clients registered 
 	// with the server.
 	// Message Format: (create,localId,x,y,z) where x, y, and z represent the position

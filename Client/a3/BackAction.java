@@ -43,5 +43,6 @@ class BackAction extends AbstractInputAction {
 		avatarP = game.getAvatarP();
 		loc = avatar.getLocalLocation();
 		avatarP.applyForce(-1f*(float)game.getTimeSinceLastFrame(), 0f, 0f, loc.x(), loc.y(), loc.z());
+		game.getProtClient().sendMoveMessage(avatar.getWorldLocation());
 	}
 }

@@ -365,7 +365,7 @@ public class MyGame extends VariableFrameRateGame {
 		creature.setPhysicsObject(creatureP);
 
 		//find out what plane_constant (fourth argument) does, maybe some mismatch between heightmap and physics object?
-		terrainP = physicsEngine.addStaticPlaneObject(physicsEngine.nextUID(), terrainTempTransform, up, 1.0f);
+		terrainP = physicsEngine.addStaticPlaneObject(physicsEngine.nextUID(), terrainTempTransform, up, 0.0f);
 		terrainP.setBounciness(1.0f);
 		terrain.setPhysicsObject(terrainP);
 
@@ -399,7 +399,7 @@ public class MyGame extends VariableFrameRateGame {
 		im.update((float)elapsedTime);
 		orbitController.updateCameraPosition();
 		processNetworking((float)elapsedTime);
-
+		protClient.sendMoveMessage(avatar.getWorldLocation());
 		// update physics
 		if (running) {
 			Matrix4f mat = new Matrix4f();
@@ -543,7 +543,7 @@ super.keyPressed(e);
 				contactPoint = manifold.getContactPoint(j);
 				if (contactPoint.getDistance() < 0.0f)
 				{ 
-					System.out.println("---- hit between " + obj1 + " and " + obj2);
+					//System.out.println("---- hit between " + obj1 + " and " + obj2);
 					break;
 				}
 			}

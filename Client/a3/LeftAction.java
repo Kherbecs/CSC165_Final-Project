@@ -45,5 +45,6 @@ class LeftAction extends AbstractInputAction {
 		avatarP = game.getAvatarP();
 		loc = avatar.getLocalLocation();
 		avatarP.applyForce(0f, 0f, -1f*(float)game.getTimeSinceLastFrame(), loc.x(), loc.y(), loc.z());
+		game.getProtClient().sendMoveMessage(avatar.getWorldLocation());
 	}
 }

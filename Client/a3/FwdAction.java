@@ -45,9 +45,8 @@ class FwdAction extends AbstractInputAction {
 		avatar = game.getAvatar();
 		avatarP = game.getAvatarP();
 		loc = avatar.getLocalLocation();
-
 		avatarP.applyForce(1f*(float)game.getTimeSinceLastFrame(), 0f, 0f, cam.getN().x(), cam.getN().y(), cam.getN().z());
-	
+		game.getProtClient().sendMoveMessage(avatar.getWorldLocation());
 	}
 	/*@Override
 	public void performAction(float time, Event e) {
