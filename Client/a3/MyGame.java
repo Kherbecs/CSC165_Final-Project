@@ -49,6 +49,7 @@ import tage.physics.PhysicsEngine;
 import tage.physics.PhysicsObject;
 import tage.physics.PhysicsEngineFactory;
 import tage.physics.JBullet.*;
+
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.collision.dispatch.CollisionObject;
 
@@ -71,7 +72,7 @@ public class MyGame extends VariableFrameRateGame {
 	private GhostManager gm;
 
 	private int counter=0;
-	private Vector3f currentPosition;
+	private Vector3f currentPosition, loc, fwd, up, right;
 	private Matrix4f initialTranslation, initialRotation, initialScale;
 	private double startTime, elapsedTime, amt, timeSinceLastFrame, lastFrameTime, currFrameTime;
 	private double prevTime = 0;
@@ -79,8 +80,8 @@ public class MyGame extends VariableFrameRateGame {
 	private Vector3f globalXAxis = new Vector3f(1f, 0f, 0f);
 	private Vector3f globalYAxis = new Vector3f(0f, 1f, 0f);
 	private Vector3f globalZAxis = new Vector3f(0f, 0f, 1f);
-	private GameObject avatar, x, y, z, box;
-	private ObjShape linxS, linyS, linzS, boxS;
+	private GameObject avatar, x, y, z, platform;
+	private ObjShape linxS, linyS, linzS, platformS;
 	private AnimatedShape ghostS;
 	private TextureImage ghostT, creatureX;
 	private Light light;
@@ -88,7 +89,6 @@ public class MyGame extends VariableFrameRateGame {
 
 	// SIMPLE CHARACTER
 	private GameObject simpleCharacter;
-	//private ObjShape simpleCharS;
 	private TextureImage simpleCharX;
 	private AnimatedShape simpleCharS;
 
@@ -99,12 +99,11 @@ public class MyGame extends VariableFrameRateGame {
 
 	// PHYSICS 
 	private PhysicsEngine physicsEngine;
-	private PhysicsObject creatureP, terrainP;
+	private PhysicsObject creatureP, terrainP, avatarP;
 	private boolean running = true;
 	private float creatureVals[] = new float[16];
-	//private float avatarVals[] = new float[16];
+	private float avatarVals[] = new float[16];
 	private float terrainVals[] = new float[16];
-	//private float boxVals[] = new float[16];
 
 	// AUDIO
 	private IAudioManager audioMgr;
@@ -139,6 +138,9 @@ public class MyGame extends VariableFrameRateGame {
 	// LIGHT
 	Light flashlight;
 
+	// PLATFORMS
+	private PlatformCollection platforms;
+
 	public MyGame(String serverAddress, int serverPort, String protocol)
 	{	super();
 		gm = new GhostManager(this);
@@ -165,29 +167,33 @@ public class MyGame extends VariableFrameRateGame {
 		scriptFileLoadShapes = new File("assets/scripts/LoadShapes.js");
 		this.runScript(scriptFileLoadShapes);
 
-		ghostS = new AnimatedShape("simpleCharV3.rkm", "simpleCharV3.rks");
-		ghostS.loadAnimation("FLAP", "arms_flapping.rka");
-		ghostS.loadAnimation("WALK", "body_movement.rka");
+		ghostS = new AnimatedShape("simpleCharFinal.rkm", "simpleCharFinal.rks");
+		ghostS.loadAnimation("idle", "idle_1.rka");
 
 		//simpleCharS = new ImportedModel("simpleCharV3.obj");
-		simpleCharS = new AnimatedShape("simpleCharV3.rkm", "simpleCharV3.rks");
-		simpleCharS.loadAnimation("FLAP", "arms_flapping.rka");
-		simpleCharS.loadAnimation("WALK", "body_movement.rka");
+		simpleCharS = new AnimatedShape("simpleCharFinal.rkm", "simpleCharFinal.rks");
+		simpleCharS.loadAnimation("idle", "idle_1.rka");
+		simpleCharS.playAnimation("idle", 0.25f, AnimatedShape.EndType.LOOP, 0);
+
 		terrainS = new TerrainPlane(1000);
 
 		creatureS = new ImportedModel("creature.obj");
 
+
 		linxS = (ObjShape)jsEngine.get("linxS");
 		linyS = (ObjShape)jsEngine.get("linyS");
 		linzS = (ObjShape)jsEngine.get("linzS");
+
+		// platform section
+		platformS = new Cube();
 	}
 
 	@Override
 	public void loadTextures()
 	{	ghostT = new TextureImage("simplecharactertx.png");
-		simpleCharX = new TextureImage("simplecharactertx.png");
+		simpleCharX = new TextureImage("simpleCharFinal.png");
 		creatureX = new TextureImage("creatureTx.png");
-		hills = new TextureImage("hmapflat.jpg");
+		hills = new TextureImage("hmaphills1.jpg");
 		grass = new TextureImage("grass.png");
 	}
 
@@ -203,13 +209,10 @@ public class MyGame extends VariableFrameRateGame {
 
 		// build player avatar
 		avatar = new GameObject(GameObject.root(), simpleCharS, simpleCharX);
-		//initialTranslation = (Matrix4f)jsEngine.get("initPlayerTranslation");
 		avatar.setLocalTranslation((Matrix4f)jsEngine.get("initAvatarTranslation"));
-		//initialRotation = (new Matrix4f()).rotationY((float)java.lang.Math.toRadians(135.0f));
-		avatar.setLocalRotation((Matrix4f)jsEngine.get("initPlayerRotation"));
-		//initialScale = (new Matrix4f()).scaling(0.25f, 0.25f, 0.25f);
+		//avatar.setLocalRotation((Matrix4f)jsEngine.get("initPlayerRotation"));
 		avatar.setLocalScale((Matrix4f)jsEngine.get("initAvatarScale"));
-		avatar.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationY((float)java.lang.Math.toRadians(180.0f)));
+		avatar.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationY((float)java.lang.Math.toRadians(-90.0f)));
 		avatar.getRenderStates().hasLighting(true);
 
 		//build creature model
@@ -220,7 +223,7 @@ public class MyGame extends VariableFrameRateGame {
 		creature.setLocalScale(initialScale);
 		creature.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationX((float)java.lang.Math.toRadians(-90.0f)));
 
-		// add X,Y,-Z axes
+		// add X,Y,Z axes
 		x = new GameObject(GameObject.root(), linxS);
 		y = new GameObject(GameObject.root(), linyS);
 		z = new GameObject(GameObject.root(), linzS);
@@ -234,13 +237,19 @@ public class MyGame extends VariableFrameRateGame {
 		initialScale = (new Matrix4f()).scaling(100.0f, 10.0f, 100.0f);
 		terrain.setLocalScale(initialScale);
 		terrain.setHeightMap(hills);
+
+		// platform section
+		platforms = new PlatformCollection(GameObject.root(), platformS); // create platforms, pass reference to root and ObjShape
+		float zTranslation = 50f;
+		for (Platform p : platforms.getPlatformList()) {
+			initialTranslation = (new Matrix4f()).translation(0f, 0f, zTranslation);
+			p.getPlatformObj().setLocalTranslation(initialTranslation);
+			zTranslation += 50f;
+		}
 	}
 
 	@Override
 	public void initializeLights() {
-		/*light = new Light();
-		light.setLocation(new Vector3f(0f, 5f, 0f));
-		(engine.getSceneGraph()).addLight(light);*/
 		//Light.setGlobalAmbient(.5f, .5f, .5f);
 		ScriptEngineManager factory = new ScriptEngineManager();
 		jsEngine = factory.getEngineByName("js");
@@ -284,16 +293,16 @@ public class MyGame extends VariableFrameRateGame {
 		im = engine.getInputManager();
 
 		// build some action objects for doing things in response to user input
-
 		// attach the action objects to keyboard and gamepad components
 		createViewports();
 		Camera c = leftCamera;
-		orbitController = new CameraOrbit3D(c, avatar, engine);
+		orbitController = new CameraOrbit3D(c, avatar, engine, 180f, 20f, 20f);
 		// keyboard inputs
 		FwdAction fwdAction = new FwdAction(this);
 		BackAction backAction = new BackAction(this);
 		LeftAction leftAction = new LeftAction(this);
 		RightAction rightAction = new RightAction(this);
+		JumpAction jumpAction = new JumpAction(this);
 		//TurnActionRight turnActionRight = new TurnActionRight(this);
 		//TurnActionLeft turnActionLeft = new TurnActionLeft(this);
 		//TurnActionUp turnActionUp = new TurnActionUp(this);
@@ -319,6 +328,7 @@ public class MyGame extends VariableFrameRateGame {
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.S, backAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.D, rightAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.A, leftAction, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.SPACE, jumpAction, InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 		//im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.UP, turnActionUp, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		//im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.DOWN, turnActionDown, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		//im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.LEFT, rollActionLeft, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
@@ -352,19 +362,16 @@ public class MyGame extends VariableFrameRateGame {
 		// --- create physics world ---
 		float mass = 1.0f;
 		float up[] = {0,1,0};
-		double[] creatureTempTransform, terrainTempTransform;
-		//float playerSize[] = {1f, 1f, 1f};
-		//float boxSize[] = {1f, 1f, 1f};
+		double[] creatureTempTransform, terrainTempTransform, avatarTempTransform;
+		float playerSize = 7f;
 
 		Matrix4f creatureTranslation = new Matrix4f(creature.getLocalTranslation());
-		//Matrix4f avatarTranslation = new Matrix4f(avatar.getLocalTranslation());
+		Matrix4f avatarTranslation = new Matrix4f(avatar.getLocalTranslation());
 		Matrix4f terrainTranslation = new Matrix4f(terrain.getLocalTranslation());
-		//Matrix4f boxTranslation = new Matrix4f(box.getLocalTranslation());
 
 		creatureTempTransform = toDoubleArray(creatureTranslation.get(creatureVals));
-		//avatarTempTransform = toDoubleArray(avatarTranslation.get(avatarVals));
+		avatarTempTransform = toDoubleArray(avatarTranslation.get(avatarVals));
 		terrainTempTransform = toDoubleArray(terrainTranslation.get(terrainVals));
-		//boxTempTransform = toDoubleArray(boxTranslation.get(boxVals));
 
 		//this works as expected
 		creatureP = physicsEngine.addSphereObject(physicsEngine.nextUID(), mass, creatureTempTransform, 1f);
@@ -376,16 +383,11 @@ public class MyGame extends VariableFrameRateGame {
 		terrainP.setBounciness(1.0f);
 		terrain.setPhysicsObject(terrainP);
 
-		//player, if size y too big it seems to glitch into floor? maybe not understanding 
-		//avatarP = physicsEngine.addBoxObject(physicsEngine.nextUID(), mass, avatarTempTransform, playerSize);
-		//avatarP.setBounciness(0.0f);
-		//avatar.setPhysicsObject(avatarP);
-
-		//testing box
-		//boxP = physicsEngine.addBoxObject(physicsEngine.nextUID(), mass, boxTempTransform, boxSize);
-		//boxP.setBounciness(1.0f);
-		//box.setPhysicsObject(boxP);
-
+		//player, spherical hit box does not seem to have issues
+		avatarP = physicsEngine.addSphereObject(physicsEngine.nextUID(), mass, avatarTempTransform, playerSize);
+		avatarP.setBounciness(0.0f);
+		avatar.setPhysicsObject(avatarP);
+		avatarP.getRigidBody().setActivationState(CollisionObject.DISABLE_DEACTIVATION);
 		setupNetworking();
 
 		//setup audio
@@ -407,68 +409,39 @@ public class MyGame extends VariableFrameRateGame {
 			+ ", " + (avatar.getLocalLocation()).y()
 			+ ", " + (avatar.getLocalLocation()).z();
 		(engine.getHUDmanager()).setHUD2(dispStr1, hud1Color, (int)leftVP.getRelativeLeft(), (int)leftVP.getRelativeBottom());
-
 		// update inputs and camera
 		im.update((float)elapsedTime);
+		//positionCameraBehindAvatar();
 		orbitController.updateCameraPosition();
-		Vector3f loc = avatar.getWorldLocation();
-		float height = terrain.getHeight(loc.x(), loc.z());
-		//avatarP.applyForce(1f, 0f, 0f, loc.x(), loc.y(), loc.z());
-		avatar.setLocalLocation(new Vector3f(loc.x(), height+7f, loc.z()));
 		processNetworking((float)elapsedTime);
-
+		protClient.sendMoveMessage(avatar.getWorldLocation());
 		// update physics
-		if (running)
-		{
+		if (running) {
 			Matrix4f mat = new Matrix4f();
 			Matrix4f mat2 = new Matrix4f().identity();
 			checkForCollisions();
 			physicsEngine.update((float)elapsedTime);
-			for (GameObject go:engine.getSceneGraph().getGameObjects())
-			{ 
-			if (go.getPhysicsObject() == avatar) {
-				break;
-			}
-			else if (go.getPhysicsObject() != null)
-			{ 
-				mat.set(toFloatArray(go.getPhysicsObject().getTransform()));
-				mat2.set(3,0,mat.m30());
-				mat2.set(3,1,mat.m31());
-				mat2.set(3,2,mat.m32());
-				go.setLocalTranslation(mat2);
+			for (GameObject go:engine.getSceneGraph().getGameObjects()) { 
+				if (go.getPhysicsObject() != null) { 
+					mat.set(toFloatArray(go.getPhysicsObject().getTransform()));
+					mat2.set(3,0,mat.m30());
+					mat2.set(3,1,mat.m31());
+					mat2.set(3,2,mat.m32());
+					go.setLocalTranslation(mat2);
 				}
 			} 
 		}
+		Vector3f loc = avatar.getWorldLocation();
+		float height = terrain.getHeight(loc.x(), loc.z());
+		//avatar.setLocalLocation(new Vector3f(loc.x(), height+7f, loc.z()));
 		//update audio
 		ambienceSound.setLocation(avatar.getWorldLocation());
 		setEarParameters();
 		simpleCharS.updateAnimation();
 	}
-	@Override
-	public void keyPressed(KeyEvent e)
-	{ switch (e.getKeyCode())
-	{ case KeyEvent.VK_V:
-{ simpleCharS.stopAnimation();
-	simpleCharS.playAnimation("FLAP", 0.5f,
-AnimatedShape.EndType.LOOP, 0);
-break;
-}
-case KeyEvent.VK_B:
-{ simpleCharS.stopAnimation();
-	simpleCharS.playAnimation("WALK", 0.5f,
-AnimatedShape.EndType.LOOP, 0);
-break;
-}
-case KeyEvent.VK_H:
-{ simpleCharS.stopAnimation();
-break;
-}
-}
-super.keyPressed(e);
-}
-	/*public PhysicsObject getAvatarP() {
+	public PhysicsObject getAvatarP() {
 		return avatarP;
-	}*/
+	}
 	public double getTimeSinceLastFrame() {
 		return timeSinceLastFrame;
 	}
@@ -484,7 +457,7 @@ super.keyPressed(e);
 		rightVP.setBorderWidth(1);
 		rightVP.setBorderColor(0.0f, 1.0f, 0.0f);
 
-		leftCamera.setLocation(new Vector3f(-2,0,2));
+		leftCamera.setLocation(new Vector3f(0,0,0));
 		leftCamera.setU(new Vector3f(1,0,0));
 		leftCamera.setV(new Vector3f(0,1,0));
 		leftCamera.setN(new Vector3f(0,0,-1));
@@ -563,14 +536,14 @@ super.keyPressed(e);
 				contactPoint = manifold.getContactPoint(j);
 				if (contactPoint.getDistance() < 0.0f)
 				{ 
-					System.out.println("---- hit between " + obj1 + " and " + obj2);
+					//System.out.println("---- hit between " + obj1 + " and " + obj2);
 					break;
 				}
 			}
 		} 
 	}
 
-	private float[] toFloatArray(double[] arr)
+	public float[] toFloatArray(double[] arr)
 	{ 
 		if (arr == null)
 		{

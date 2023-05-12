@@ -189,4 +189,5 @@ public abstract class JBulletPhysicsObject implements PhysicsObject {
 	public void applyTorque(float fx, float fy, float fz){
 		body.applyTorque(new Vector3f(fx, fy, fz));
 	}
+
 }

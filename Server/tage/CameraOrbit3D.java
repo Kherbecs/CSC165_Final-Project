@@ -24,13 +24,13 @@ public class CameraOrbit3D {
     private float cameraRadius;
 
     /** creates a CameraOrbit3D */
-    public CameraOrbit3D(Camera cam, GameObject av, Engine e) {
+    public CameraOrbit3D(Camera cam, GameObject av, Engine e, float azimuth, float elevation, float radius) {
         engine = e;
         camera = cam;
         avatar = av;
-        cameraAzimuth = 0.0f;
-        cameraElevation = 20.0f;
-        cameraRadius = 20.0f;
+        cameraAzimuth = azimuth;
+        cameraElevation = elevation;
+        cameraRadius = radius;
         setupInputs();
         updateCameraPosition();
     }

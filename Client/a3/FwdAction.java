@@ -18,14 +18,15 @@ class FwdAction extends AbstractInputAction {
     private MyGame game;
 	private Camera cam;
 	private GameObject avatar;
-	//private PhysicsObject avatarP;
-	private Vector3f oldPosition, newPosition, oldLocation, newTranslation, fwdDirection3f, currU, currV, currN;
-	private Vector4f fwdDirection;
-	private Matrix3f rotation;
+	private PhysicsObject avatarP;
+	private Vector3f loc;
+	//private Vector3f oldPosition, newPosition, oldLocation, newTranslation, fwdDirection3f, currU, currV, currN;
+	//private Vector4f fwdDirection;
+	//private Matrix3f rotation;
 	public FwdAction(MyGame g) {
 		game = g;
 	}
-	@Override
+	/*@Override
 	public void performAction(float time, Event e) {
 		avatar = game.getAvatar();
 		//avatarP = game.getAvatarP();
@@ -37,5 +38,21 @@ class FwdAction extends AbstractInputAction {
 		newPosition = oldPosition.add(fwdDirection.x(), fwdDirection.y(), fwdDirection.z());
 		avatar.setLocalLocation(newPosition);
 		game.getProtClient().sendMoveMessage(avatar.getWorldLocation());
+	}*/
+	@Override
+	public void performAction(float time, Event e) {
+		cam = game.getLeftCamera();
+		avatar = game.getAvatar();
+		avatarP = game.getAvatarP();
+		loc = avatar.getLocalLocation();
+		avatarP.applyForce(0f, 0f, 1f*(float)game.getTimeSinceLastFrame(), cam.getN().x(), cam.getN().y(), cam.getN().z());
+		//avatarP.applyTorque(0f, 100f, 0f);
+		game.getProtClient().sendMoveMessage(avatar.getWorldLocation());
 	}
+	/*@Override
+	public void performAction(float time, Event e) {
+		avatar = game.getAvatar();
+		avatarP = game.getAvatarP();
+		avatarP.getTransform()
+	}*/
 }
