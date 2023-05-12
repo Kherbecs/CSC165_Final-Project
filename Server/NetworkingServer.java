@@ -8,7 +8,7 @@ public class NetworkingServer
 {
 	private GameServerUDP thisUDPServer;
 	private GameServerTCP thisTCPServer;
-	private GameAIServerUDP UDPServer;
+	private GameAIServerUDP dUDPserver;
 	private NPCcontroller npcCtrl;
 
 	public NetworkingServer(int serverPort, String protocol) 
@@ -29,12 +29,12 @@ public class NetworkingServer
 
 		try
 		{ 
-			UDPServer = new GameAIServerUDP(serverPort, npcCtrl);
+			dUDPserver = new GameAIServerUDP(serverPort, npcCtrl);
 
 		} catch (IOException e) { 
 			System.out.println("server didn't start"); e.printStackTrace();
 		}
-			npcCtrl.start(UDPServer);
+			npcCtrl.start(dUDPserver);
 	}
 
 	public static void main(String[] args) 
