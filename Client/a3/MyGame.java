@@ -97,6 +97,11 @@ public class MyGame extends VariableFrameRateGame {
 	private TextureImage creaturetx;
 	private ObjShape creatureS;
 
+	// BUSH
+	private GameObject bush;
+	private TextureImage bushtX;
+	private ObjShape bushS;
+
 	// PHYSICS 
 	private PhysicsEngine physicsEngine;
 	private PhysicsObject creatureP, terrainP, avatarP;
@@ -107,7 +112,7 @@ public class MyGame extends VariableFrameRateGame {
 
 	// AUDIO
 	private IAudioManager audioMgr;
-	private Sound ambienceSound;
+	private Sound ambienceSound, bushSound;
 
 	// TERRAIN
 	private GameObject terrain;
@@ -179,6 +184,8 @@ public class MyGame extends VariableFrameRateGame {
 
 		creatureS = new ImportedModel("creature.obj");
 
+		bushS = new Cube();
+
 
 		linxS = (ObjShape)jsEngine.get("linxS");
 		linyS = (ObjShape)jsEngine.get("linyS");
@@ -195,6 +202,7 @@ public class MyGame extends VariableFrameRateGame {
 		creatureX = new TextureImage("creatureTx.png");
 		hills = new TextureImage("hmaphills1.jpg");
 		grass = new TextureImage("grass.png");
+		bushtX = new TextureImage("grass.png");
 	}
 
 	@Override
@@ -222,6 +230,14 @@ public class MyGame extends VariableFrameRateGame {
 		initialScale = (new Matrix4f()).scaling(1f, 1f, 1f);
 		creature.setLocalScale(initialScale);
 		creature.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationX((float)java.lang.Math.toRadians(-90.0f)));
+
+		//add bush for noise
+		bush = new GameObject(GameObject.root(), bushS, bushtX);
+		initialTranslation = (new Matrix4f()).translation(4f, 0f, 0f);
+		bush.setLocalTranslation(initialTranslation);
+		initialScale = (new Matrix4f()).scaling(.6f, .6f, .6f);
+		bush.setLocalScale(initialScale);
+		bush.getRenderStates().setModelOrientationCorrection((new Matrix4f()).rotationX((float)java.lang.Math.toRadians(-90.0f)));
 
 		// add X,Y,Z axes
 		x = new GameObject(GameObject.root(), linxS);
@@ -574,13 +590,22 @@ public class MyGame extends VariableFrameRateGame {
 
 	public void initAudio() {
 		AudioResource resource1;
+		//AudioResource resource2;
 		audioMgr = AudioManagerFactory.createAudioManager("tage.audio.joal.JOALAudioManager");
 		if (!audioMgr.initialize()) {
 			System.out.println("Audio Manager failed to initialize!");
 			return;
 		}
 		resource1 = audioMgr.createAudioResource("assets/sounds/ambience.wav", AudioResourceType.AUDIO_SAMPLE);
+		//resource2 = audioMgr.createAudioResource("assets/sounds/...wav", AudioResourceType.AUDIO_SAMPLE);
 		ambienceSound = new Sound(resource1, SoundType.SOUND_EFFECT, 100, true);
+		//bushSound = new Sound(resource2, SoundType.SOUND_EFFECT, 100, true);
+		//bushSound.initialize(audioMgr);
+		//bushSound.setMaxDistance(10.0f);
+		//bushSound.setMinDistance(0.5f);
+		//bushSound.setRollOff(5.0f);
+		//bushSound.setLocation(bush.getWorldLocation());
+
 		ambienceSound.initialize(audioMgr);
 		ambienceSound.setMaxDistance(10.0f);
 		ambienceSound.setMinDistance(0.5f);
@@ -588,6 +613,7 @@ public class MyGame extends VariableFrameRateGame {
 		ambienceSound.setLocation(avatar.getWorldLocation());
 		setEarParameters();
 		ambienceSound.play();
+		//bushSound.play();
 	}
 	public void setEarParameters() {
 		Camera camera = leftCamera;
