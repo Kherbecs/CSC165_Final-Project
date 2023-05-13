@@ -20,6 +20,7 @@ class FwdAction extends AbstractInputAction {
 	private GameObject avatar;
 	private PhysicsObject avatarP;
 	private Vector3f loc;
+	double[] transform = new double[16];
 	//private Vector3f oldPosition, newPosition, oldLocation, newTranslation, fwdDirection3f, currU, currV, currN;
 	//private Vector4f fwdDirection;
 	//private Matrix3f rotation;
@@ -45,8 +46,7 @@ class FwdAction extends AbstractInputAction {
 		avatar = game.getAvatar();
 		avatarP = game.getAvatarP();
 		loc = avatar.getLocalLocation();
-		avatarP.applyForce(0f, 0f, 1f*(float)game.getTimeSinceLastFrame(), cam.getN().x(), cam.getN().y(), cam.getN().z());
-		//avatarP.applyTorque(0f, 100f, 0f);
+		avatarP.applyForce(0f, 0f, 1f*(float)game.getTimeSinceLastFrame(), loc.x(), loc.y(), loc.z());
 		game.getProtClient().sendMoveMessage(avatar.getWorldLocation());
 	}
 	/*@Override
