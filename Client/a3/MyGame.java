@@ -443,6 +443,8 @@ public class MyGame extends VariableFrameRateGame {
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 		im.associateActionWithAllGamepads(net.java.games.input.Component.Identifier.Button._1, switchGameStateAction,
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+		im.associateActionWithAllGamepads(net.java.games.input.Component.Identifier.Button._2, toggleLights,
+				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 
 		// --- initialize physics system ---
 		String engine = "tage.physics.JBullet.JBulletPhysicsEngine";
