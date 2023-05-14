@@ -6,7 +6,7 @@
  * May need further modification when physics are implemented.
  * SCRIPTING (LOW PRIORITY): Do more initialization with scripting. Maybe some in-game parameters can be put to a script. 
  * SKYBOX AND TERRAIN (LOW PRIORITY): Get physics to work with height map. Otherwise, done.
- * LIGHTS (LOW PRIORITY): Need 2, technically done, but not effective use. Currently a spotlight on player spawn (1), probably going to try and add a spotlight to player that can be
+ * LIGHTS (LOW PRIORITY): Need 2, technically done, but not effective use. Currently a spotlight1 on player spawn (1), probably going to try and add a spotlight1 to player that can be
  * toggled on and off (2).
  * HUD (LOW PRIORITY): There will be a string displayed top or bottom left that reads "Score: (integer score_variable)". At the moment, score will be gained when a player lands on a new platform
  * (is completing the platformer). Shouldn't be difficult to implement.
@@ -25,6 +25,7 @@
 package a3;
 
 import tage.*;
+import tage.nodeControllers.*;
 import tage.Light.LightType;
 import tage.shapes.*;
 import tage.input.*;
@@ -84,10 +85,10 @@ public class MyGame extends VariableFrameRateGame {
 	private Vector3f globalYAxis = new Vector3f(0f, 1f, 0f);
 	private Vector3f globalZAxis = new Vector3f(0f, 0f, 1f);
 	private GameObject avatar, x, y, z, platform;
-	private ObjShape linxS, linyS, linzS, platformS;
+	private ObjShape linxS, linyS, linzS;
 	private AnimatedShape ghostS;
 	private TextureImage ghostT, creatureX;
-	private Light light;
+	private Light lobbyLight, spotlight1, spotlight2;
 	private int fluffyClouds, lakeIslands, nightSky;
 
 	// SIMPLE CHARACTER
@@ -115,7 +116,7 @@ public class MyGame extends VariableFrameRateGame {
 
 	// AUDIO
 	private IAudioManager audioMgr;
-	private Sound ambienceSound, bushSound;
+	private Sound backgroundMusic, creatureSound, avatarPickSound;
 
 	// TERRAIN
 	private GameObject terrain;
@@ -146,16 +147,21 @@ public class MyGame extends VariableFrameRateGame {
 	// HUD
 	Vector3f hud1Color = new Vector3f(1f, 0, 0);
 
-	// LIGHT
-	Light spotlight;
-
 	// PLATFORMS
-	private PlatformCollection platforms;
+	private CoinList coinList1;
 
 	// walls
 	private GameObject wall1, wall2, wall3, wall4;
 	private ObjShape wallS;
 	private TextureImage brickS;
+
+	// coinList1
+	private GameObject coin;
+	private ObjShape coinS;
+	private TextureImage coinX;
+
+	// rotation controller
+	private NodeController rcCoin;
 
 	public MyGame(String serverAddress, int serverPort, String protocol) {
 		super();
@@ -199,9 +205,7 @@ public class MyGame extends VariableFrameRateGame {
 		terrainS = new TerrainPlane(1000);
 		groundS = new Plane();
 
-		creatureS = new ImportedModel("creature.obj");
-
-		bushS = new Cube();
+		creatureS = new ImportedModel("creature2.obj");
 
 		wallS = new Cube();
 
@@ -210,7 +214,7 @@ public class MyGame extends VariableFrameRateGame {
 		linzS = (ObjShape) jsEngine.get("linzS");
 
 		// platform section
-		platformS = new Cube();
+		coinS = new ImportedModel("coin.obj");
 	}
 
 	@Override
@@ -219,11 +223,11 @@ public class MyGame extends VariableFrameRateGame {
 		simpleCharX = new TextureImage("simpleCharFinal.png");
 		menuAvatar1X = new TextureImage("simpleCharFinalgreen.png");
 		menuAvatar2X = new TextureImage("simpleCharFinalpurple.png");
-		creatureX = new TextureImage("creatureTx.png");
+		creatureX = new TextureImage("creature2.png");
 		hills = new TextureImage("hmaphills2.jpg");
 		grass = new TextureImage("grass.png");
-		bushtX = new TextureImage("grass.png");
 		brickS = new TextureImage("brick1.jpg");
+		coinX = new TextureImage("coin.png");
 	}
 
 	@Override
@@ -259,21 +263,12 @@ public class MyGame extends VariableFrameRateGame {
 
 		// build creature model
 		creature = new GameObject(GameObject.root(), creatureS, creatureX);
-		initialTranslation = (new Matrix4f()).translation(-10f, 3f, 0f);
+		initialTranslation = (new Matrix4f()).translation(0f, 3f, 250f);
 		creature.setLocalTranslation(initialTranslation);
 		initialScale = (new Matrix4f()).scaling(1f, 1f, 1f);
 		creature.setLocalScale(initialScale);
 		creature.getRenderStates()
-				.setModelOrientationCorrection((new Matrix4f()).rotationX((float) java.lang.Math.toRadians(-90.0f)));
-
-		// add bush for noise
-		bush = new GameObject(GameObject.root(), bushS, bushtX);
-		initialTranslation = (new Matrix4f()).translation(4f, 0f, 0f);
-		bush.setLocalTranslation(initialTranslation);
-		initialScale = (new Matrix4f()).scaling(.6f, .6f, .6f);
-		bush.setLocalScale(initialScale);
-		bush.getRenderStates()
-				.setModelOrientationCorrection((new Matrix4f()).rotationX((float) java.lang.Math.toRadians(-90.0f)));
+				.setModelOrientationCorrection((new Matrix4f()).rotationY((float) java.lang.Math.toRadians(-90.0f)));
 
 		// add X,Y,Z axes
 		x = new GameObject(GameObject.root(), linxS);
@@ -298,21 +293,19 @@ public class MyGame extends VariableFrameRateGame {
 
 		createLobbyWalls(); // creates the lobby walls
 
-		// platform section
-		/*
-		 * platforms = new PlatformCollection(GameObject.root(), platformS); // create
-		 * platforms, pass reference to root and ObjShape
-		 * float zTranslation = 200f;
-		 * float zScale = 10f;
-		 * float xScale = 5f;
-		 * for (Platform p : platforms.getPlatformList()) {
-		 * initialTranslation = (new Matrix4f()).translation(0f, 0f, zTranslation);
-		 * initialScale = (new Matrix4f()).scaling(xScale, 1f, zScale);
-		 * p.getPlatformObj().setLocalTranslation(initialTranslation);
-		 * p.getPlatformObj().setLocalScale(initialScale);
-		 * zTranslation += 200f;
-		 * }
-		 */
+		coinList1 = new CoinList(GameObject.root(), coinS, coinX);
+		float zTranslation = 600f;
+		float zScale = 10f;
+		float xScale = 5f;
+		for (Coin c : coinList1.getCoinList()) {
+			initialScale = (new Matrix4f()).scaling(5f, 5f, 5f);
+			initialRotation = (new Matrix4f());
+			initialTranslation = (new Matrix4f()).translation(0f, 10f, zTranslation);
+			c.getCoinObj().setLocalScale(initialScale);
+			c.getCoinObj().pitchObject(90f, initialRotation);
+			c.getCoinObj().setLocalTranslation(initialTranslation);
+			zTranslation += 200f;
+		}
 	}
 
 	@Override
@@ -323,19 +316,32 @@ public class MyGame extends VariableFrameRateGame {
 
 		scriptFile1 = new File("assets/scripts/CreateLight.js");
 		this.runScript(scriptFile1);
-		// (engine.getSceneGraph()).addLight((Light)jsEngine.get("light"));
+		(engine.getSceneGraph()).addLight((Light)jsEngine.get("light"));
 
-		spotlight = new Light();
-		spotlight.setType(LightType.SPOTLIGHT);
-		spotlight.setAmbient(.5f, .5f, .5f);
-		spotlight.setDiffuse(.7f, .7f, .7f);
-		spotlight.setSpecular(1.0f, 1.0f, 1.0f);
-		spotlight.setLocation(new Vector3f(0.0f, 50.0f, 0.0f));
-		spotlight.setRange(5f);
-		spotlight.setDirection(new Vector3f(0f, -1f, 0f));
-		spotlight.setCutoffAngle(10.0f);
-		spotlight.setOffAxisExponent(10.0f);
-		(engine.getSceneGraph()).addLight(spotlight);
+		spotlight1 = new Light();
+		spotlight1.setType(LightType.SPOTLIGHT);
+		spotlight1.setAmbient(.5f, .5f, .5f);
+		spotlight1.setDiffuse(.7f, .7f, .7f);
+		spotlight1.setSpecular(1.0f, 1.0f, 1.0f);
+		spotlight1.setLocation(new Vector3f(18f, 50.0f, 100.0f));
+		spotlight1.setRange(5f);
+		spotlight1.setDirection(new Vector3f(0f, 0f, -1f));
+		spotlight1.setCutoffAngle(5.0f);
+		spotlight1.setOffAxisExponent(5.0f);
+		(engine.getSceneGraph()).addLight(spotlight1);
+
+		spotlight2 = new Light();
+		spotlight2.setType(LightType.SPOTLIGHT);
+		spotlight2.setAmbient(.5f, .5f, .5f);
+		spotlight2.setDiffuse(.7f, .7f, .7f);
+		spotlight2.setSpecular(1.0f, 1.0f, 1.0f);
+		spotlight2.setLocation(new Vector3f(-18f, 50.0f, 100.0f));
+		spotlight2.setRange(5f);
+		spotlight2.setDirection(new Vector3f(0f, 0f, -1f));
+		spotlight2.setCutoffAngle(5.0f);
+		spotlight2.setOffAxisExponent(5.0f);
+		(engine.getSceneGraph()).addLight(spotlight2);
+		
 	}
 
 	@Override
@@ -362,8 +368,13 @@ public class MyGame extends VariableFrameRateGame {
 		// build some action objects for doing things in response to user input
 		// attach the action objects to keyboard and gamepad components
 		createViewports();
-		Camera c = leftCamera;
-		orbitController = new CameraOrbit3D(c, avatar, engine, 180f, 20f, 20f);
+		orbitController = new CameraOrbit3D(leftCamera, avatar, engine, 180f, 20f, 20f);
+		rcCoin = new RotationController(engine, new Vector3f(0f, 1f, 0f), 0.001f);
+		for (Coin c : coinList1.getCoinList()) {
+			rcCoin.addTarget(c.getCoinObj());
+		}
+		(engine.getSceneGraph()).addNodeController(rcCoin);
+		rcCoin.toggle();
 		// keyboard inputs
 		FwdAction fwdAction = new FwdAction(this);
 		BackAction backAction = new BackAction(this);
@@ -372,12 +383,6 @@ public class MyGame extends VariableFrameRateGame {
 		JumpAction jumpAction = new JumpAction(this);
 		SwitchGameStateAction switchGameStateAction = new SwitchGameStateAction(this);
 		ToggleAvatarSelectAction toggleAvatarSelectAction = new ToggleAvatarSelectAction(this);
-		// TurnActionRight turnActionRight = new TurnActionRight(this);
-		// TurnActionLeft turnActionLeft = new TurnActionLeft(this);
-		// TurnActionUp turnActionUp = new TurnActionUp(this);
-		// TurnActionDown turnActionDown = new TurnActionDown(this);
-		// RollActionLeft rollActionLeft = new RollActionLeft(this);
-		// RollActionRight rollActionRight = new RollActionRight(this);
 		ToggleWorldAxis toggleWorldAxis = new ToggleWorldAxis(this);
 		PanCameraFwd panCameraFwd = new PanCameraFwd(this);
 		PanCameraBack panCameraBack = new PanCameraBack(this);
@@ -390,9 +395,6 @@ public class MyGame extends VariableFrameRateGame {
 		TurnActionControllerX turnActionControllerX = new TurnActionControllerX(this);
 		PanCameraFwdBwdController panCameraFwdBwdController = new PanCameraFwdBwdController(this);
 		PanCameraLeftRightController panCameraLeftRightController = new PanCameraLeftRightController(this);
-		// PitchActionController pitchActionController = new
-		// PitchActionController(this);
-		// RollActionController rollActionController = new RollActionController(this);
 		// associate kb inputs
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.W, fwdAction,
 				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
@@ -408,14 +410,6 @@ public class MyGame extends VariableFrameRateGame {
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key._1, toggleAvatarSelectAction,
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
-		// im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.UP,
-		// turnActionUp, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		// im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.DOWN,
-		// turnActionDown, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		// im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.LEFT,
-		// rollActionLeft, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		// im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.RIGHT,
-		// rollActionRight, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.V, toggleWorldAxis,
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.I, panCameraFwd,
@@ -435,11 +429,6 @@ public class MyGame extends VariableFrameRateGame {
 				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		im.associateActionWithAllGamepads(net.java.games.input.Component.Identifier.Axis.X, turnActionControllerX,
 				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		// im.associateActionWithAllGamepads(net.java.games.input.Component.Identifier.Axis.RY,
-		// panCameraFwdBwdController, InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		// im.associateActionWithAllGamepads(net.java.games.input.Component.Identifier.Axis.RX,
-		// panCameraLeftRightController,
-		// InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		im.associateActionWithAllGamepads(net.java.games.input.Component.Identifier.Button._0, panCameraBack,
 				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		im.associateActionWithAllGamepads(net.java.games.input.Component.Identifier.Button._1, panCameraRight,
@@ -475,8 +464,8 @@ public class MyGame extends VariableFrameRateGame {
 		terrainTempTransform = toDoubleArray(terrainTranslation.get(terrainVals));
 
 		// this works as expected
-		creatureP = physicsEngine.addSphereObject(physicsEngine.nextUID(), mass, creatureTempTransform, 1f);
-		creatureP.setBounciness(1.0f);
+		creatureP = physicsEngine.addSphereObject(physicsEngine.nextUID(), mass, creatureTempTransform, 3f);
+		creatureP.setBounciness(0.0f);
 		creature.setPhysicsObject(creatureP);
 
 		// find out what plane_constant (fourth argument) does, maybe some mismatch
@@ -519,15 +508,12 @@ public class MyGame extends VariableFrameRateGame {
 				(engine.getHUDmanager()).setHUD2(dispStr1, hud1Color, (int) leftVP.getRelativeLeft(),
 						(int) leftVP.getRelativeBottom());
 			} else {
-				String dispStr1 = "Avatar chosen: " + avatarChosen +". Press the `/~ key to continue.";
+				String dispStr1 = "Avatar chosen: " + avatarChosen +". Press the GRAVE key to continue.";
 				(engine.getHUDmanager()).setHUD2(dispStr1, hud1Color, (int) leftVP.getRelativeLeft(),
 						(int) leftVP.getRelativeBottom());
 			}
 		} else if (gameState == 1) { // "lobby"
-			String dispStr1 = "player position = "
-					+ (avatar.getLocalLocation()).x()
-					+ ", " + (avatar.getLocalLocation()).y()
-					+ ", " + (avatar.getLocalLocation()).z();
+			String dispStr1 = "When you're ready, press GRAVE to move outside.";
 			(engine.getHUDmanager()).setHUD2(dispStr1, hud1Color, (int) leftVP.getRelativeLeft(),
 					(int) leftVP.getRelativeBottom());
 			positionCameraBehindAvatar();
@@ -554,7 +540,8 @@ public class MyGame extends VariableFrameRateGame {
 			float height = terrain.getHeight(loc.x(), loc.z());
 			avatar.setLocalLocation(new Vector3f(loc.x(), height + 7f, loc.z()));
 			// update audio
-			ambienceSound.setLocation(avatar.getWorldLocation());
+			backgroundMusic.setLocation(avatar.getWorldLocation());
+			creatureSound.setLocation(creature.getWorldLocation());
 			setEarParameters();
 			simpleCharS.updateAnimation();
 			ghostS.updateAnimation();
@@ -565,6 +552,11 @@ public class MyGame extends VariableFrameRateGame {
 				simpleCharS.playAnimation("flight2", 0.25f, AnimatedShape.EndType.LOOP, 0);
 				ghostS.playAnimation("flight1", 0.25f, AnimatedShape.EndType.NONE, 0);
 				ghostS.playAnimation("flight2", 0.25f, AnimatedShape.EndType.LOOP, 0);
+				avatar.setLocalLocation(new Vector3f(0, 7, 350f));
+				Matrix4f transform = new Matrix4f(avatar.getLocalTranslation());
+				double[] transformDouble;
+				transformDouble = toDoubleArray(transform.get(avatarVals));
+				avatarP.setTransform(transformDouble);
 			}
 			isFlying = true;
 			String dispStr1 = "player position = "
@@ -597,7 +589,8 @@ public class MyGame extends VariableFrameRateGame {
 			float height = terrain.getHeight(loc.x(), loc.z());
 			avatar.setLocalLocation(new Vector3f(loc.x(), height + 7f, loc.z()));
 			// update audio
-			ambienceSound.setLocation(avatar.getWorldLocation());
+			backgroundMusic.setLocation(avatar.getWorldLocation());
+			creatureSound.setLocation(creature.getWorldLocation());
 			setEarParameters();
 			simpleCharS.updateAnimation();
 			ghostS.updateAnimation();
@@ -634,7 +627,8 @@ public class MyGame extends VariableFrameRateGame {
 			float height = terrain.getHeight(loc.x(), loc.z());
 			avatar.setLocalLocation(new Vector3f(loc.x(), height + 7f, loc.z()));
 			// update audio
-			ambienceSound.setLocation(avatar.getWorldLocation());
+			backgroundMusic.setLocation(avatar.getWorldLocation());
+			creatureSound.setLocation(creature.getWorldLocation());
 			setEarParameters();
 			simpleCharS.updateAnimation();
 			ghostS.updateAnimation();
@@ -838,37 +832,48 @@ public class MyGame extends VariableFrameRateGame {
 
 	public void initAudio() {
 		AudioResource resource1;
-		// AudioResource resource2;
+		AudioResource resource2;
+		AudioResource resource3;
 		audioMgr = AudioManagerFactory.createAudioManager("tage.audio.joal.JOALAudioManager");
 		if (!audioMgr.initialize()) {
 			System.out.println("Audio Manager failed to initialize!");
 			return;
 		}
 		resource1 = audioMgr.createAudioResource("assets/sounds/signal_pursuit.wav", AudioResourceType.AUDIO_STREAM);
-		// resource2 = audioMgr.createAudioResource("assets/sounds/...wav",
-		// AudioResourceType.AUDIO_SAMPLE);
-		ambienceSound = new Sound(resource1, SoundType.SOUND_EFFECT, 30, true);
-		// bushSound = new Sound(resource2, SoundType.SOUND_EFFECT, 100, true);
-		// bushSound.initialize(audioMgr);
-		// bushSound.setMaxDistance(10.0f);
-		// bushSound.setMinDistance(0.5f);
-		// bushSound.setRollOff(5.0f);
-		// bushSound.setLocation(bush.getWorldLocation());
+		resource2 = audioMgr.createAudioResource("assets/sounds/Goblin_01.wav", AudioResourceType.AUDIO_SAMPLE);
+		resource3 = audioMgr.createAudioResource("assets/sounds/MENU_Pick.wav", AudioResourceType.AUDIO_SAMPLE);
+		backgroundMusic = new Sound(resource1, SoundType.SOUND_MUSIC, 20, true);
+		creatureSound = new Sound(resource2, SoundType.SOUND_EFFECT, 100, true);
+		avatarPickSound = new Sound(resource3, SoundType.SOUND_EFFECT, 100, false);
 
-		ambienceSound.initialize(audioMgr);
-		ambienceSound.setMaxDistance(10.0f);
-		ambienceSound.setMinDistance(0.5f);
-		ambienceSound.setRollOff(5.0f);
-		ambienceSound.setLocation(avatar.getWorldLocation());
+		backgroundMusic.initialize(audioMgr);
+		backgroundMusic.setMaxDistance(10.0f);
+		backgroundMusic.setMinDistance(0.5f);
+		backgroundMusic.setRollOff(5.0f);
+		backgroundMusic.setLocation(avatar.getWorldLocation());
+
+		creatureSound.initialize(audioMgr);
+		creatureSound.setMaxDistance(100f);
+		creatureSound.setMinDistance(1f);
+		creatureSound.setRollOff(1.1f);
+		creatureSound.setLocation(creature.getWorldLocation());
+
+		avatarPickSound.initialize(audioMgr);
+		avatarPickSound.setLocation(leftCamera.getLocation());
+
 		setEarParameters();
-		ambienceSound.play();
-		// bushSound.play();
+		backgroundMusic.play();
+		creatureSound.play();
 	}
 
 	public void setEarParameters() {
 		Camera camera = leftCamera;
 		audioMgr.getEar().setLocation(avatar.getLocalLocation());
 		audioMgr.getEar().setOrientation(camera.getN(), new Vector3f(0.0f, 1.0f, 0.0f));
+	}
+
+	public Sound getAvatarPickSound() {
+		return avatarPickSound;
 	}
 	// ---------- NETWORKING SECTION ----------------
 

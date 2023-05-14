@@ -19,3 +19,5 @@ SOURCES:
 Grass Texture - https://opengameart.org/content/seamless-grass-texture-ii
 Night Sky skybox - https://opengameart.org/content/space-skyboxes-0
 Signal Pursuit - https://opengameart.org/content/signal-pursuit
+Fantasy Sound Library (Goblin1 and ) - https://opengameart.org/content/fantasy-sound-effects-library
+UI Sound Effects Pack - https://opengameart.org/content/ui-sound-effects-pack

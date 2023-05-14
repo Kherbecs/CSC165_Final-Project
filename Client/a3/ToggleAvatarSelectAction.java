@@ -20,9 +20,12 @@ class ToggleAvatarSelectAction extends AbstractInputAction {
             if (game.getAvatarChosen() == 0 || game.getAvatarChosen() == 2) {
                 game.setAvatarChosen(1);
                 game.setPlayerAvatarTextureGreen();
+                game.getAvatarPickSound().play();
+
             } else {
                 game.setAvatarChosen(2);
                 game.setPlayerAvatarTexturePurple();
+                game.getAvatarPickSound().play();
             }
         }
     }
