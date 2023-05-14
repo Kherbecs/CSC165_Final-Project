@@ -75,11 +75,12 @@ public class MyGame extends VariableFrameRateGame {
 	private int gameState = 0;
 	private int avatarChosen = 0;
 	private boolean isFlying = false;
-	private int counter = 0;
+	private int coinCounter = 0;
 	private Vector3f currentPosition, loc, fwd, up, right;
 	private Matrix4f initialTranslation, initialRotation, initialScale;
 	private double startTime, elapsedTime, amt, timeSinceLastFrame, lastFrameTime, currFrameTime;
 	private double prevTime = 0;
+	private float distanceBetween;
 
 	private Vector3f globalXAxis = new Vector3f(1f, 0f, 0f);
 	private Vector3f globalYAxis = new Vector3f(0f, 1f, 0f);
@@ -97,7 +98,7 @@ public class MyGame extends VariableFrameRateGame {
 	private AnimatedShape simpleCharS;
 
 	// CREATURE VARIABLES
-	private GameObject creature;
+	private GameObject creature, creatureInvis;
 	private TextureImage creaturetx;
 	private ObjShape creatureS;
 
@@ -133,7 +134,7 @@ public class MyGame extends VariableFrameRateGame {
 	private CameraOrbit3D orbitController;
 	private Vector3f initLeftCamLoc = new Vector3f(0f, 50f, -150f);
 
-	// SCRIPT STUFF
+	// SCRIPT
 	private File scriptFile1, scriptFileLoadShapes, scriptFileBuildObjects;
 	private long fileLastModifiedTime = 0;
 	ScriptEngine jsEngine;
@@ -156,7 +157,7 @@ public class MyGame extends VariableFrameRateGame {
 	private TextureImage brickS;
 
 	// coinList1
-	private GameObject coin;
+	private GameObject coin, coinMini;
 	private ObjShape coinS;
 	private TextureImage coinX;
 
@@ -306,6 +307,15 @@ public class MyGame extends VariableFrameRateGame {
 			c.getCoinObj().setLocalTranslation(initialTranslation);
 			zTranslation += 200f;
 		}
+		coinMini = new GameObject(GameObject.root(), coinS, coinX);
+		initialTranslation = (new Matrix4f()).translation(0, 8f, 0);
+		initialScale = (new Matrix4f()).scaling(0.5f);
+		coinMini.setLocalScale(initialScale);
+		coinMini.setLocalTranslation(initialTranslation);
+		coinMini.setParent(avatar);
+		coinMini.propagateTranslation(true);
+		coinMini.propagateRotation(false);
+		coinMini.getRenderStates().disableRendering();
 	}
 
 	@Override
@@ -373,6 +383,7 @@ public class MyGame extends VariableFrameRateGame {
 		for (Coin c : coinList1.getCoinList()) {
 			rcCoin.addTarget(c.getCoinObj());
 		}
+		rcCoin.addTarget(coinMini);
 		(engine.getSceneGraph()).addNodeController(rcCoin);
 		rcCoin.toggle();
 		// keyboard inputs
@@ -384,17 +395,9 @@ public class MyGame extends VariableFrameRateGame {
 		SwitchGameStateAction switchGameStateAction = new SwitchGameStateAction(this);
 		ToggleAvatarSelectAction toggleAvatarSelectAction = new ToggleAvatarSelectAction(this);
 		ToggleWorldAxis toggleWorldAxis = new ToggleWorldAxis(this);
-		PanCameraFwd panCameraFwd = new PanCameraFwd(this);
-		PanCameraBack panCameraBack = new PanCameraBack(this);
-		PanCameraLeft panCameraLeft = new PanCameraLeft(this);
-		PanCameraRight panCameraRight = new PanCameraRight(this);
-		ZoomCameraIn zoomCameraIn = new ZoomCameraIn(this);
-		ZoomCameraOut zoomCameraOut = new ZoomCameraOut(this);
 		// controller inputs
 		MoveActionController moveActionController = new MoveActionController(this);
 		TurnActionControllerX turnActionControllerX = new TurnActionControllerX(this);
-		PanCameraFwdBwdController panCameraFwdBwdController = new PanCameraFwdBwdController(this);
-		PanCameraLeftRightController panCameraLeftRightController = new PanCameraLeftRightController(this);
 		// associate kb inputs
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.W, fwdAction,
 				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
@@ -412,35 +415,15 @@ public class MyGame extends VariableFrameRateGame {
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.V, toggleWorldAxis,
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
-		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.I, panCameraFwd,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.K, panCameraBack,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.J, panCameraLeft,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.L, panCameraRight,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.O, zoomCameraIn,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.P, zoomCameraOut,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		// associate gamepad inputs
 		im.associateActionWithAllGamepads(net.java.games.input.Component.Identifier.Axis.Y, moveActionController,
 				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		im.associateActionWithAllGamepads(net.java.games.input.Component.Identifier.Axis.X, turnActionControllerX,
 				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllGamepads(net.java.games.input.Component.Identifier.Button._0, panCameraBack,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllGamepads(net.java.games.input.Component.Identifier.Button._1, panCameraRight,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllGamepads(net.java.games.input.Component.Identifier.Button._2, panCameraLeft,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllGamepads(net.java.games.input.Component.Identifier.Button._3, panCameraFwd,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllGamepads(net.java.games.input.Component.Identifier.Button._4, zoomCameraIn,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllGamepads(net.java.games.input.Component.Identifier.Button._5, zoomCameraOut,
-				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
+		im.associateActionWithAllGamepads(net.java.games.input.Component.Identifier.Button._0, toggleAvatarSelectAction,
+				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
+		im.associateActionWithAllGamepads(net.java.games.input.Component.Identifier.Button._1, switchGameStateAction,
+				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 
 		// --- initialize physics system ---
 		String engine = "tage.physics.JBullet.JBulletPhysicsEngine";
@@ -558,18 +541,18 @@ public class MyGame extends VariableFrameRateGame {
 				transformDouble = toDoubleArray(transform.get(avatarVals));
 				avatarP.setTransform(transformDouble);
 			}
+			creature.lookAt(avatar);
 			isFlying = true;
-			String dispStr1 = "player position = "
-					+ (avatar.getLocalLocation()).x()
-					+ ", " + (avatar.getLocalLocation()).y()
-					+ ", " + (avatar.getLocalLocation()).z();
+			String dispStr1 = "Coins collected: " + coinCounter;
 			(engine.getHUDmanager()).setHUD2(dispStr1, hud1Color, (int) leftVP.getRelativeLeft(),
 					(int) leftVP.getRelativeBottom());
 			positionCameraBehindAvatar();
 			// orbitController.updateCameraPosition();
 			processNetworking((float) elapsedTime);
 			protClient.sendMoveMessage(avatar.getWorldLocation());
-
+			for (Coin c : coinList1.getCoinList()) {
+				checkAvatarCoinDistance(avatar, c.getCoinObj());
+			}
 			if (running) { // update physics
 				Matrix4f mat = new Matrix4f();
 				Matrix4f mat2 = new Matrix4f().identity();
@@ -595,43 +578,6 @@ public class MyGame extends VariableFrameRateGame {
 			simpleCharS.updateAnimation();
 			ghostS.updateAnimation();
 			// System.out.println("in state 2");
-		} else {
-			// build and set HUD
-			String dispStr1 = "player position = "
-					+ (avatar.getLocalLocation()).x()
-					+ ", " + (avatar.getLocalLocation()).y()
-					+ ", " + (avatar.getLocalLocation()).z();
-			(engine.getHUDmanager()).setHUD2(dispStr1, hud1Color, (int) leftVP.getRelativeLeft(),
-					(int) leftVP.getRelativeBottom());
-			positionCameraBehindAvatar();
-			// orbitController.updateCameraPosition();
-			processNetworking((float) elapsedTime);
-			protClient.sendMoveMessage(avatar.getWorldLocation());
-
-			if (running) { // update physics
-				Matrix4f mat = new Matrix4f();
-				Matrix4f mat2 = new Matrix4f().identity();
-				checkForCollisions();
-				physicsEngine.update((float) elapsedTime);
-				for (GameObject go : engine.getSceneGraph().getGameObjects()) {
-					if (go.getPhysicsObject() != null) {
-						mat.set(toFloatArray(go.getPhysicsObject().getTransform()));
-						mat2.set(3, 0, mat.m30());
-						mat2.set(3, 1, mat.m31());
-						mat2.set(3, 2, mat.m32());
-						go.setLocalTranslation(mat2);
-					}
-				}
-			}
-			Vector3f loc = avatar.getWorldLocation();
-			float height = terrain.getHeight(loc.x(), loc.z());
-			avatar.setLocalLocation(new Vector3f(loc.x(), height + 7f, loc.z()));
-			// update audio
-			backgroundMusic.setLocation(avatar.getWorldLocation());
-			creatureSound.setLocation(creature.getWorldLocation());
-			setEarParameters();
-			simpleCharS.updateAnimation();
-			ghostS.updateAnimation();
 		}
 	}
 
@@ -657,7 +603,19 @@ public class MyGame extends VariableFrameRateGame {
 		leftCamera.setN(fwd);
 		leftCamera.setLocation(loc.add(up.mul(10f)).add(fwd.mul(-30f)));
 	}
-
+	private float distanceBetween(GameObject obj1, GameObject obj2) {
+		Vector3f obj2Loc = obj2.getLocalLocation();
+		Vector3f obj1Loc = obj1.getLocalLocation();
+		return distanceBetween = obj1Loc.distance(obj2Loc);
+	}
+	public void checkAvatarCoinDistance(GameObject avatar, GameObject coin) {
+		if (distanceBetween(avatar, coin) < 7f) {
+			coin.setLocalLocation(new Vector3f(0f, -10f, 0f));
+			coin.getRenderStates().disableRendering();
+			coinCounter++;
+			coinMini.getRenderStates().enableRendering();
+		}
+	}
 	public PhysicsObject getAvatarP() {
 		return avatarP;
 	}

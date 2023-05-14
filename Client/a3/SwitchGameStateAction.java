@@ -25,8 +25,5 @@ class SwitchGameStateAction extends AbstractInputAction{
         else if (game.getGameState() == 1) {
             game.setGameState(2);
         }
-        else {
-            game.setGameState(-1);
-        }
 	}
 }

@@ -16,7 +16,6 @@ import com.bulletphysics.collision.dispatch.CollisionObject;
 
 class FwdAction extends AbstractInputAction {
     private MyGame game;
-	private Camera cam;
 	private GameObject avatar;
 	private PhysicsObject avatarP;
 	private Vector3f loc;
@@ -42,7 +41,6 @@ class FwdAction extends AbstractInputAction {
 	}*/
 	@Override
 	public void performAction(float time, Event e) {
-		cam = game.getLeftCamera();
 		avatar = game.getAvatar();
 		avatarP = game.getAvatarP();
 		loc = avatar.getLocalLocation();
