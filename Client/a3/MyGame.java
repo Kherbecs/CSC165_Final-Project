@@ -152,7 +152,7 @@ public class MyGame extends VariableFrameRateGame {
 	private CoinList coinList1;
 
 	// walls
-	private GameObject wall1, wall2, wall3, wall4;
+	private GameObject wall1, wall2, wall3, wall4, finishLine;
 	private ObjShape wallS;
 	private TextureImage brickS;
 
@@ -330,6 +330,12 @@ public class MyGame extends VariableFrameRateGame {
 		coinMini.propagateTranslation(true);
 		coinMini.propagateRotation(false);
 		coinMini.getRenderStates().disableRendering();
+
+		finishLine = new GameObject(GameObject.root(), wallS);
+		initialTranslation = (new Matrix4f()).translation(0, 50, 3000);
+		finishLine.setLocalTranslation(initialTranslation);
+		initialScale = (new Matrix4f()).scaling(10000, 10000, 1);
+		finishLine.setLocalScale(initialScale);
 	}
 
 	@Override
