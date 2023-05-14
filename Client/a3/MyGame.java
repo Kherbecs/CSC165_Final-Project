@@ -296,17 +296,31 @@ public class MyGame extends VariableFrameRateGame {
 
 		coinList1 = new CoinList(GameObject.root(), coinS, coinX);
 		float zTranslation = 600f;
+		float xPosTranslation = 50f;
+		float xNegTranslation = -50f;
 		float zScale = 10f;
 		float xScale = 5f;
+		int count = 0;
 		for (Coin c : coinList1.getCoinList()) {
 			initialScale = (new Matrix4f()).scaling(5f, 5f, 5f);
 			initialRotation = (new Matrix4f());
-			initialTranslation = (new Matrix4f()).translation(0f, 10f, zTranslation);
 			c.getCoinObj().setLocalScale(initialScale);
 			c.getCoinObj().pitchObject(90f, initialRotation);
 			c.getCoinObj().setLocalTranslation(initialTranslation);
 			zTranslation += 200f;
+			if (count % 2 == 0) {
+				initialTranslation = (new Matrix4f()).translation(xPosTranslation, 10f, zTranslation);
+				xPosTranslation = (float)Math.random() * 100;
+				xNegTranslation = (float)Math.random() * 100 * -1;
+			} else if (count % 2 != 0) {
+				initialTranslation = (new Matrix4f()).translation(xNegTranslation, 10f, zTranslation);
+				xPosTranslation = (float)Math.random() * 100;
+				xNegTranslation = (float)Math.random() * 100 * -1;
+			}
+			c.getCoinObj().setLocalTranslation(initialTranslation);
+			count++;
 		}
+
 		coinMini = new GameObject(GameObject.root(), coinS, coinX);
 		initialTranslation = (new Matrix4f()).translation(0, 8f, 0);
 		initialScale = (new Matrix4f()).scaling(0.5f);
@@ -353,7 +367,12 @@ public class MyGame extends VariableFrameRateGame {
 		(engine.getSceneGraph()).addLight(spotlight2);
 		
 	}
-
+	public Light getSpotlight1() {
+		return spotlight1;
+	}
+	public Light getSpotLight2() {
+		return spotlight2;
+	}
 	@Override
 	public void loadSkyBoxes() {
 		fluffyClouds = (engine.getSceneGraph()).loadCubeMap("fluffyClouds");
@@ -391,10 +410,10 @@ public class MyGame extends VariableFrameRateGame {
 		BackAction backAction = new BackAction(this);
 		LeftAction leftAction = new LeftAction(this);
 		RightAction rightAction = new RightAction(this);
-		JumpAction jumpAction = new JumpAction(this);
 		SwitchGameStateAction switchGameStateAction = new SwitchGameStateAction(this);
 		ToggleAvatarSelectAction toggleAvatarSelectAction = new ToggleAvatarSelectAction(this);
 		ToggleWorldAxis toggleWorldAxis = new ToggleWorldAxis(this);
+		ToggleLights toggleLights = new ToggleLights(this);
 		// controller inputs
 		MoveActionController moveActionController = new MoveActionController(this);
 		TurnActionControllerX turnActionControllerX = new TurnActionControllerX(this);
@@ -407,7 +426,7 @@ public class MyGame extends VariableFrameRateGame {
 				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.A, leftAction,
 				InputManager.INPUT_ACTION_TYPE.REPEAT_WHILE_DOWN);
-		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.SPACE, jumpAction,
+		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.SPACE, toggleLights,
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
 		im.associateActionWithAllKeyboards(net.java.games.input.Component.Identifier.Key.GRAVE, switchGameStateAction,
 				InputManager.INPUT_ACTION_TYPE.ON_PRESS_ONLY);
@@ -495,6 +514,7 @@ public class MyGame extends VariableFrameRateGame {
 				(engine.getHUDmanager()).setHUD2(dispStr1, hud1Color, (int) leftVP.getRelativeLeft(),
 						(int) leftVP.getRelativeBottom());
 			}
+			processNetworking((float) elapsedTime);
 		} else if (gameState == 1) { // "lobby"
 			String dispStr1 = "When you're ready, press GRAVE to move outside.";
 			(engine.getHUDmanager()).setHUD2(dispStr1, hud1Color, (int) leftVP.getRelativeLeft(),
@@ -610,6 +630,7 @@ public class MyGame extends VariableFrameRateGame {
 		if (distanceBetween(avatar, coin) < 7f) {
 			coin.setLocalLocation(new Vector3f(0f, -10f, 0f));
 			coin.getRenderStates().disableRendering();
+			engine.getSceneGraph().removeGameObject(coin);
 			coinCounter++;
 			coinMini.getRenderStates().enableRendering();
 		}
