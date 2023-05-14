@@ -503,7 +503,7 @@ public class MyGame extends VariableFrameRateGame {
 			// orbitController.updateCameraPosition();
 			processNetworking((float) elapsedTime);
 			protClient.sendMoveMessage(avatar.getWorldLocation());
-
+			lobbyKeepInBounds();
 			if (running) { // update physics
 				Matrix4f mat = new Matrix4f();
 				Matrix4f mat2 = new Matrix4f().identity();
@@ -580,7 +580,6 @@ public class MyGame extends VariableFrameRateGame {
 			// System.out.println("in state 2");
 		}
 	}
-
 	public void positionCameraAvatarSelect() {
 		Vector3f fwd, up, right;
 		leftCamera.setLocation(initLeftCamLoc);
@@ -591,7 +590,6 @@ public class MyGame extends VariableFrameRateGame {
 		leftCamera.setV(up);
 		leftCamera.setN(fwd);
 	}
-
 	public void positionCameraBehindAvatar() {
 		Vector3f loc, fwd, up, right;
 		loc = avatar.getWorldLocation();
@@ -614,6 +612,20 @@ public class MyGame extends VariableFrameRateGame {
 			coin.getRenderStates().disableRendering();
 			coinCounter++;
 			coinMini.getRenderStates().enableRendering();
+		}
+	}
+	public void lobbyKeepInBounds() {
+		if (avatar.getWorldLocation().z >= 95) {
+			avatarP.applyForce(0f, 0f, -100f, avatar.getWorldLocation().x(), avatar.getWorldLocation().y(), avatar.getWorldLocation().z());
+		}
+		if (avatar.getWorldLocation().z <= -95) {
+			avatarP.applyForce(0f, 0f, 100f, avatar.getWorldLocation().x(), avatar.getWorldLocation().y(), avatar.getWorldLocation().z());
+		}
+		if (avatar.getWorldLocation().x >= 95) {
+			avatarP.applyForce(-100f, 0f, 0f, avatar.getWorldLocation().x(), avatar.getWorldLocation().y(), avatar.getWorldLocation().z());
+		}
+		if (avatar.getWorldLocation().x <= -95) {
+			avatarP.applyForce(100f, 0f, 0f, avatar.getWorldLocation().x(), avatar.getWorldLocation().y(), avatar.getWorldLocation().z());
 		}
 	}
 	public PhysicsObject getAvatarP() {
